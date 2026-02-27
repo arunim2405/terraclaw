@@ -29,6 +29,8 @@ func New(cfg *config.Config) (Provider, error) {
 		return NewClaude(cfg.AnthropicAPIKey), nil
 	case config.ProviderGemini:
 		return NewGemini(cfg.GeminiAPIKey), nil
+	case config.ProviderAzureOpenAI:
+		return NewAzureOpenAI(cfg.AzureOpenAIAPIKey, cfg.AzureOpenAIEndpoint, cfg.AzureOpenAIDeployment), nil
 	default:
 		return nil, fmt.Errorf("unknown LLM provider: %s", cfg.LLMProvider)
 	}

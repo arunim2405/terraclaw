@@ -12,9 +12,10 @@ import (
 type LLMProvider string
 
 const (
-	ProviderOpenAI    LLMProvider = "openai"
-	ProviderClaude    LLMProvider = "claude"
-	ProviderGemini    LLMProvider = "gemini"
+	ProviderOpenAI      LLMProvider = "openai"
+	ProviderClaude      LLMProvider = "claude"
+	ProviderGemini      LLMProvider = "gemini"
+	ProviderAzureOpenAI LLMProvider = "azure-openai"
 )
 
 // Config holds the application configuration.
@@ -31,6 +32,11 @@ type Config struct {
 	AnthropicAPIKey string
 	GeminiAPIKey    string
 	LLMProvider     LLMProvider
+
+	// Azure OpenAI (Azure AI Foundry)
+	AzureOpenAIAPIKey     string
+	AzureOpenAIEndpoint   string
+	AzureOpenAIDeployment string
 
 	// Terraform
 	TerraformBin string
@@ -50,10 +56,13 @@ func Load() (*Config, error) {
 		SteampipeDB:       envOrDefault("STEAMPIPE_DB", "steampipe"),
 		SteampipeUser:     envOrDefault("STEAMPIPE_USER", "steampipe"),
 		SteampipePassword: envOrDefault("STEAMPIPE_PASSWORD", ""),
-		OpenAIAPIKey:      os.Getenv("OPENAI_API_KEY"),
-		AnthropicAPIKey:   os.Getenv("ANTHROPIC_API_KEY"),
-		GeminiAPIKey:      os.Getenv("GEMINI_API_KEY"),
-		LLMProvider:       LLMProvider(envOrDefault("LLM_PROVIDER", string(ProviderOpenAI))),
+		OpenAIAPIKey:          os.Getenv("OPENAI_API_KEY"),
+		AnthropicAPIKey:       os.Getenv("ANTHROPIC_API_KEY"),
+		GeminiAPIKey:          os.Getenv("GEMINI_API_KEY"),
+		LLMProvider:           LLMProvider(envOrDefault("LLM_PROVIDER", string(ProviderOpenAI))),
+		AzureOpenAIAPIKey:     os.Getenv("AZURE_OPENAI_API_KEY"),
+		AzureOpenAIEndpoint:   os.Getenv("AZURE_OPENAI_ENDPOINT"),
+		AzureOpenAIDeployment: envOrDefault("AZURE_OPENAI_DEPLOYMENT", "gpt-4o"),
 		TerraformBin:      envOrDefault("TERRAFORM_BIN", "terraform"),
 		OutputDir:         envOrDefault("OUTPUT_DIR", "."),
 	}
@@ -76,8 +85,15 @@ func (c *Config) Validate() error {
 		if c.GeminiAPIKey == "" {
 			return fmt.Errorf("GEMINI_API_KEY is required when using gemini provider")
 		}
+	case ProviderAzureOpenAI:
+		if c.AzureOpenAIAPIKey == "" {
+			return fmt.Errorf("AZURE_OPENAI_API_KEY is required when using azure-openai provider")
+		}
+		if c.AzureOpenAIEndpoint == "" {
+			return fmt.Errorf("AZURE_OPENAI_ENDPOINT is required when using azure-openai provider")
+		}
 	default:
-		return fmt.Errorf("unknown LLM provider %q; valid options: openai, claude, gemini", c.LLMProvider)
+		return fmt.Errorf("unknown LLM provider %q; valid options: openai, claude, gemini, azure-openai", c.LLMProvider)
 	}
 	return nil
 }

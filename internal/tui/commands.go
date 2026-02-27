@@ -105,6 +105,8 @@ func generateCodeCmd(providerName string, resources []ResourceItem) tea.Cmd {
 
 		// Map provider display name back to config provider.
 		switch {
+		case strings.Contains(providerName, "Azure"):
+			appConfig.LLMProvider = config.ProviderAzureOpenAI
 		case strings.Contains(providerName, "OpenAI"):
 			appConfig.LLMProvider = config.ProviderOpenAI
 		case strings.Contains(providerName, "Anthropic"):

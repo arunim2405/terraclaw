@@ -89,6 +89,25 @@ func TestValidate(t *testing.T) {
 			cfg:     config.Config{LLMProvider: "unknown"},
 			wantErr: true,
 		},
+		{
+			name:    "azure-openai without key",
+			cfg:     config.Config{LLMProvider: config.ProviderAzureOpenAI, AzureOpenAIEndpoint: "https://example.openai.azure.com/"},
+			wantErr: true,
+		},
+		{
+			name:    "azure-openai without endpoint",
+			cfg:     config.Config{LLMProvider: config.ProviderAzureOpenAI, AzureOpenAIAPIKey: "key"},
+			wantErr: true,
+		},
+		{
+			name: "azure-openai with key and endpoint",
+			cfg: config.Config{
+				LLMProvider:         config.ProviderAzureOpenAI,
+				AzureOpenAIAPIKey:   "key",
+				AzureOpenAIEndpoint: "https://example.openai.azure.com/",
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {

@@ -103,6 +103,7 @@ func New(schemas []string) Model {
 		listItem{title: "ChatGPT (OpenAI)", desc: "GPT-4o powered code generation"},
 		listItem{title: "Claude (Anthropic)", desc: "Claude 3.7 Sonnet powered code generation"},
 		listItem{title: "Gemini (Google)", desc: "Gemini 2.0 Flash powered code generation"},
+		listItem{title: "Azure OpenAI (Azure AI Foundry)", desc: "GPT-4o via Azure AI Foundry"},
 	}
 
 	l := newList(llmProviders, "Select LLM Provider", 0)
@@ -439,6 +440,7 @@ func buildProviderList() list.Model {
 		listItem{title: "ChatGPT (OpenAI)", desc: "GPT-4o powered code generation"},
 		listItem{title: "Claude (Anthropic)", desc: "Claude 3.7 Sonnet powered code generation"},
 		listItem{title: "Gemini (Google)", desc: "Gemini 2.0 Flash powered code generation"},
+		listItem{title: "Azure OpenAI (Azure AI Foundry)", desc: "GPT-4o via Azure AI Foundry"},
 	}
 	return newList(items, "Select LLM Provider", 0)
 }
