@@ -37,12 +37,18 @@ type Config struct {
 	AzureOpenAIAPIKey     string
 	AzureOpenAIEndpoint   string
 	AzureOpenAIDeployment string
+	AzureOpenAIAPIVersion string
+	AzureOpenAIModelType  string // "chat" (default) or "completions" (codex family)
 
 	// Terraform
 	TerraformBin string
 
 	// Output
 	OutputDir string
+
+	// Debug
+	Debug        bool
+	DebugLogFile string
 }
 
 // Load loads configuration from environment variables and an optional .env file.
@@ -63,8 +69,12 @@ func Load() (*Config, error) {
 		AzureOpenAIAPIKey:     os.Getenv("AZURE_OPENAI_API_KEY"),
 		AzureOpenAIEndpoint:   os.Getenv("AZURE_OPENAI_ENDPOINT"),
 		AzureOpenAIDeployment: envOrDefault("AZURE_OPENAI_DEPLOYMENT", "gpt-4o"),
-		TerraformBin:      envOrDefault("TERRAFORM_BIN", "terraform"),
-		OutputDir:         envOrDefault("OUTPUT_DIR", "."),
+		AzureOpenAIAPIVersion: envOrDefault("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
+		AzureOpenAIModelType:  envOrDefault("AZURE_OPENAI_MODEL_TYPE", "chat"),
+		TerraformBin:         envOrDefault("TERRAFORM_BIN", "terraform"),
+		OutputDir:            envOrDefault("OUTPUT_DIR", "."),
+		Debug:                os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1",
+		DebugLogFile:         envOrDefault("DEBUG_LOG_FILE", "terraclaw.log"),
 	}
 
 	return cfg, nil

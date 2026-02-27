@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/arunim2405/terraclaw/config"
+	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
 
@@ -22,18 +23,21 @@ type Provider interface {
 
 // New returns the appropriate Provider implementation for the given config.
 func New(cfg *config.Config) (Provider, error) {
+	var p Provider
 	switch cfg.LLMProvider {
 	case config.ProviderOpenAI:
-		return NewOpenAI(cfg.OpenAIAPIKey), nil
+		p = NewOpenAI(cfg.OpenAIAPIKey)
 	case config.ProviderClaude:
-		return NewClaude(cfg.AnthropicAPIKey), nil
+		p = NewClaude(cfg.AnthropicAPIKey)
 	case config.ProviderGemini:
-		return NewGemini(cfg.GeminiAPIKey), nil
+		p = NewGemini(cfg.GeminiAPIKey)
 	case config.ProviderAzureOpenAI:
-		return NewAzureOpenAI(cfg.AzureOpenAIAPIKey, cfg.AzureOpenAIEndpoint, cfg.AzureOpenAIDeployment), nil
+		p = NewAzureOpenAI(cfg.AzureOpenAIAPIKey, cfg.AzureOpenAIEndpoint, cfg.AzureOpenAIAPIVersion, cfg.AzureOpenAIDeployment, AzureModelType(cfg.AzureOpenAIModelType))
 	default:
 		return nil, fmt.Errorf("unknown LLM provider: %s", cfg.LLMProvider)
 	}
+	debuglog.Log("[llm] provider instantiated: %s", p.Name())
+	return p, nil
 }
 
 // buildPrompt constructs the prompt sent to the LLM.

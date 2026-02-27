@@ -1,0 +1,294 @@
+2026/02/27 15:17:30.466121 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:17:30.466229 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:17:33.669344 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:17:34.930498 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:17:34.930802 [steampipe] fetching tables for schema=aws
+2026/02/27 15:17:34.953549 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:17:40.763699 [tui] step: SelectTable → loading resources (table="aws_api_gatewayv2_api")
+2026/02/27 15:17:40.763872 [steampipe] fetching resources for schema=aws table=aws_api_gatewayv2_api
+2026/02/27 15:17:41.662724 [steampipe] fetched 0 resource(s) from aws.aws_api_gatewayv2_api
+2026/02/27 15:17:59.115929 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:17:59.116095 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:18:00.475568 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:18:02.906779 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:18:05.577093 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:18:05.577368 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:18:05.577407 [llm] resolved provider: azure-openai
+2026/02/27 15:18:05.577544 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:18:05.577559 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:18:05.577572 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
+2026/02/27 15:18:05.577652 [azure-openai] API error: this model is not supported MaxTokens, please use MaxCompletionTokens
+2026/02/27 15:18:05.577705 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: this model is not supported MaxTokens, please use MaxCompletionTokens
+2026/02/27 15:18:05.577745 [tui] async error: azure openai completion: this model is not supported MaxTokens, please use MaxCompletionTokens
+2026/02/27 15:18:59.606976 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:18:59.607056 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:19:01.103407 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:19:02.101804 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:19:02.101980 [steampipe] fetching tables for schema=aws
+2026/02/27 15:19:02.115623 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:19:28.508594 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:19:28.508998 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:19:28.720117 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:19:30.529020 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:19:31.324404 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:19:31.324732 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:19:31.324788 [llm] resolved provider: azure-openai
+2026/02/27 15:19:31.324954 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:19:31.324970 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:19:31.324985 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
+2026/02/27 15:19:31.325110 [azure-openai] API error: this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0
+2026/02/27 15:19:31.325130 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0
+2026/02/27 15:19:31.325160 [tui] async error: azure openai completion: this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0
+2026/02/27 15:20:15.808992 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:20:15.809139 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:20:17.670789 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:20:18.854205 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:20:18.855264 [steampipe] fetching tables for schema=aws
+2026/02/27 15:20:18.876416 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:20:31.199070 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:20:31.199810 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:20:31.422552 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:20:32.205321 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:20:32.974260 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:20:32.974557 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:20:32.974605 [llm] resolved provider: azure-openai
+2026/02/27 15:20:32.974691 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:20:32.974708 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:20:32.974723 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
+2026/02/27 15:20:33.928800 [azure-openai] API error: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
+2026/02/27 15:20:33.928996 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
+2026/02/27 15:20:33.929059 [tui] async error: azure openai completion: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
+2026/02/27 15:21:59.192349 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:21:59.192502 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:22:00.826201 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:22:02.079325 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:22:02.079724 [steampipe] fetching tables for schema=aws
+2026/02/27 15:22:02.104312 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:22:13.543038 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:22:13.544452 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:22:13.774123 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:22:14.334725 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:22:14.979608 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:22:14.979915 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:22:14.979972 [llm] resolved provider: azure-openai
+2026/02/27 15:22:14.980083 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:22:14.980100 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:22:14.980113 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
+2026/02/27 15:22:15.937583 [azure-openai] API error: error, status code: 404, status: 404 Not Found, message: Resource not found
+2026/02/27 15:22:15.938242 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: error, status code: 404, status: 404 Not Found, message: Resource not found
+2026/02/27 15:22:15.938456 [tui] async error: azure openai completion: error, status code: 404, status: 404 Not Found, message: Resource not found
+2026/02/27 15:28:04.018628 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:28:04.018723 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:28:06.638809 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:28:07.649877 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:28:07.651779 [steampipe] fetching tables for schema=aws
+2026/02/27 15:28:07.672224 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:28:18.914202 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:28:18.914436 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:28:20.491026 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:28:21.012636 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:28:21.751945 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:28:21.752278 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:28:21.752325 [llm] resolved provider: azure-openai
+2026/02/27 15:28:21.752396 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:28:21.752412 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:28:21.752426 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
+2026/02/27 15:28:22.666862 [azure-openai] API error: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
+2026/02/27 15:28:22.666965 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
+2026/02/27 15:28:22.667030 [tui] async error: azure openai completion: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
+2026/02/27 15:40:21.901061 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:40:21.901250 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:40:25.780604 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:40:26.755008 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:40:26.755290 [steampipe] fetching tables for schema=aws
+2026/02/27 15:40:26.774138 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:40:38.505557 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:40:38.507006 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:40:40.153329 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:40:40.872426 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:40:41.622843 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:40:41.623120 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:40:41.623175 [llm] resolved provider: azure-openai
+2026/02/27 15:40:41.623355 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:40:41.623383 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:40:41.623407 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
+2026/02/27 15:40:42.512851 [azure-openai] API error: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/chat/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The chatCompletion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
+2026/02/27 15:40:42.512984 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/chat/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The chatCompletion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
+2026/02/27 15:40:42.513033 [tui] async error: azure openai completion: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/chat/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The chatCompletion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
+2026/02/27 15:45:57.211003 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:45:57.211382 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:45:59.695053 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:46:01.980148 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:46:01.980498 [steampipe] fetching tables for schema=aws
+2026/02/27 15:46:02.001436 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:46:14.374561 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:46:14.376023 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:46:16.008173 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:46:16.530110 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:46:19.074640 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:46:19.074926 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:46:19.074972 [llm] resolved provider: azure-openai
+2026/02/27 15:46:19.075798 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:46:19.075888 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:46:19.075928 [azure-openai] calling API deployment=gpt-5.3-codex modelType=completions resources=0 promptLen=489
+2026/02/27 15:46:19.962130 [azure-openai] completions API error: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The completion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
+2026/02/27 15:46:19.962336 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completions: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The completion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
+2026/02/27 15:46:19.962407 [tui] async error: azure openai completions: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The completion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
+2026/02/27 15:55:40.772621 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:55:40.772728 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:55:42.460191 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:55:53.501431 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:55:54.406718 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:55:54.407000 [steampipe] fetching tables for schema=aws
+2026/02/27 15:55:54.428814 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:56:06.609303 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:56:06.609644 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:56:09.317356 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:56:10.340423 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:56:13.683903 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:56:13.684281 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:56:13.684329 [llm] resolved provider: azure-openai
+2026/02/27 15:56:13.684718 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:56:13.684743 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:56:13.684760 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=0 promptLen=489
+2026/02/27 15:56:14.631161 [azure-openai] responses API error: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/responses?api-version=2024-12-01-preview": 400 Bad Request {"code":"BadRequest","message":"Azure OpenAI Responses API is enabled only for api-version 2025-03-01-preview and later"}
+2026/02/27 15:56:14.631371 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai responses: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/responses?api-version=2024-12-01-preview": 400 Bad Request {"code":"BadRequest","message":"Azure OpenAI Responses API is enabled only for api-version 2025-03-01-preview and later"}
+2026/02/27 15:56:14.631455 [tui] async error: azure openai responses: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/responses?api-version=2024-12-01-preview": 400 Bad Request {"code":"BadRequest","message":"Azure OpenAI Responses API is enabled only for api-version 2025-03-01-preview and later"}
+2026/02/27 15:57:13.198314 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 15:57:13.198549 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 15:57:15.552905 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 15:57:16.486133 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 15:57:16.487192 [steampipe] fetching tables for schema=aws
+2026/02/27 15:57:16.507226 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 15:57:35.371586 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 15:57:35.373035 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 15:57:35.596694 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 15:57:36.410394 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 15:57:37.847100 [tui] step: ConfirmGenerate → Generating
+2026/02/27 15:57:37.847338 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 15:57:37.847378 [llm] resolved provider: azure-openai
+2026/02/27 15:57:37.847522 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 15:57:37.847543 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 15:57:37.847608 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=0 promptLen=489
+2026/02/27 15:57:41.049389 [azure-openai] responses response received: 151 chars
+2026/02/27 15:57:41.049538 [llm] Azure OpenAI (Azure AI Foundry) response received: 151 chars
+2026/02/27 15:57:41.050626 [terraform] config written to main.tf
+2026/02/27 15:57:41.050704 [tui] step: Generating → ViewCode (code length=151)
+2026/02/27 16:00:40.781128 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 16:00:40.781357 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 16:00:46.312232 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 16:00:49.113724 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 16:00:49.114582 [steampipe] fetching tables for schema=aws
+2026/02/27 16:00:49.130846 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 16:01:01.312229 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 16:01:01.313513 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 16:01:01.616527 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 16:01:02.750193 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
+2026/02/27 16:01:03.933824 [tui] step: ConfirmGenerate → Generating
+2026/02/27 16:01:03.934141 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
+2026/02/27 16:01:03.934189 [llm] resolved provider: azure-openai
+2026/02/27 16:01:03.934360 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 16:01:03.934381 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
+2026/02/27 16:01:03.934395 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=0 prompt=You are a Terraform expert. Generate complete, valid Terraform HCL configuration code to import and manage the following existing cloud resources.
+
+For each resource:
+1. Create the appropriate terraform resource block
+2. Include all required arguments
+3. Set values based on the resource properties provided
+4. Add a comment with the terraform import command needed
+
+Resources:
+
+
+Return ONLY the Terraform HCL code. Include terraform import commands as comments above each resource block.
+2026/02/27 16:01:06.327774 [azure-openai] responses response received: 173 chars
+2026/02/27 16:01:06.327809 [llm] Azure OpenAI (Azure AI Foundry) response received: 173 chars
+2026/02/27 16:01:06.328222 [terraform] config written to main.tf
+2026/02/27 16:01:06.328247 [tui] step: Generating → ViewCode (code length=173)
+2026/02/27 16:03:14.666647 [debuglog] initialized — writing to terraclaw.log
+2026/02/27 16:03:14.666761 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/02/27 16:03:17.818618 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/02/27 16:03:18.779957 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/02/27 16:03:18.780324 [steampipe] fetching tables for schema=aws
+2026/02/27 16:03:18.802444 [steampipe] fetched 579 table(s) from schema=aws
+2026/02/27 16:03:35.259699 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
+2026/02/27 16:03:35.259990 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
+2026/02/27 16:03:37.674512 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
+2026/02/27 16:03:43.792589 [tui] step: SelectResources → ConfirmGenerate (1 resource(s) selected)
+2026/02/27 16:03:49.256278 [tui] step: ConfirmGenerate → Generating
+2026/02/27 16:03:49.256556 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=1
+2026/02/27 16:03:49.256605 [llm] resolved provider: azure-openai
+2026/02/27 16:03:49.256761 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/02/27 16:03:49.256783 [llm] calling Azure OpenAI (Azure AI Foundry) API with 1 resource(s)
+2026/02/27 16:03:49.256923 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=1 prompt=You are a Terraform expert. Generate complete, valid Terraform HCL configuration code to import and manage the following existing cloud resources.
+
+For each resource:
+1. Create the appropriate terraform resource block
+2. Include all required arguments
+3. Set values based on the resource properties provided
+4. Add a comment with the terraform import command needed
+
+Resources:
+
+Resource 1:
+  Provider: aws
+  Type: aws_cognito_user_pool
+  Name: platform-users-nonprod
+  ID: eu-central-1_C6bwuggLI
+  Region: eu-central-1
+  Properties:
+    sp_ctx: {"steampipe": {"sdk_version": "5.13.1"}, "connection_name": "aws"}
+    _ctx: {"steampipe": {"sdk_version": "5.13.1"}, "connection_name": "aws"}
+    creation_date: 2021-04-27 17:04:38.673 +0000 UTC
+    deletion_protection: INACTIVE
+    username_attributes: ["email"]
+    estimated_number_of_users: %!s(int64=693)
+    sms_authentication_message: Your authentication code is {####}. 
+    auto_verified_attributes: [email]
+    name: platform-users-nonprod
+    tags: {"Resource-Type": "nonprod"}
+    title: platform-users-nonprod
+    last_modified_date: 2026-01-19 11:38:38.747 +0000 UTC
+    mfa_configuration: OPTIONAL
+    region: eu-central-1
+    sp_connection_name: aws
+    id: eu-central-1_C6bwuggLI
+    user_pool_add_ons: {"AdvancedSecurityMode": "AUDIT"}
+    arn: arn:aws:cognito-idp:eu-central-1:790543352839:userpool/eu-central-1_C6bwuggLI
+    account_recovery_setting: {"RecoveryMechanisms": [{"Name": "verified_email", "Priority": 1}, {"Name": "verified_phone_number", "Priority": 2}]}
+    policies: {"PasswordPolicy": {"MinimumLength": 8, "RequireNumbers": true, "RequireSymbols": true, "RequireLowercase": true, "RequireUppercase": true, "TemporaryPasswordValidityDays": 7}}
+    username_configuration: {"CaseSensitive": false}
+    user_attribute_update_settings: {"AttributesRequireVerificationBeforeUpdate": []}
+    partition: aws
+    alias_attributes: []
+    domain: stackguardian-nonprod
+    akas: ["arn:aws:cognito-idp:eu-central-1:790543352839:userpool/eu-central-1_C6bwuggLI"]
+    account_id: 790543352839
+
+
+Return ONLY the Terraform HCL code. Include terraform import commands as comments above each resource block.
+2026/02/27 16:04:02.951549 [azure-openai] responses response received: 1227 chars
+2026/02/27 16:04:02.951626 [llm] Azure OpenAI (Azure AI Foundry) response received: 1227 chars
+2026/02/27 16:04:02.952261 [terraform] config written to main.tf
+2026/02/27 16:04:02.952326 [tui] step: Generating → ViewCode (code length=1227)
+2026/02/27 16:05:44.350699 [tui] step: ViewCode → ConfirmImport
+2026/02/27 16:05:45.666529 [tui] step: ConfirmImport → Importing
+2026/02/27 16:05:45.666716 [terraform] runImport called for 1 resource(s)
+2026/02/27 16:05:45.666778 [terraform] running import with bin=terraform outputDir=.
+2026/02/27 16:05:45.885528 [terraform] import complete: ✗ aws_cognito_user_pool.platform_users_nonprod: terraform import failed: exit status 1
+[31m[31m╷[0m[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mInconsistent dependency lock file[0m
+[31m│[0m [0m
+[31m│[0m [0m[0mThe following dependency selections recorded in the lock file are
+[31m│[0m [0minconsistent with the current configuration:
+[31m│[0m [0m  - provider registry.terraform.io/hashicorp/aws: required by this configuration but no version is selected
+[31m│[0m [0m
+[31m│[0m [0mTo make the initial dependency selections that will initialize the
+[31m│[0m [0mdependency lock file, run:
+[31m│[0m [0m  terraform init
+[31m╵[0m[0m
+[0m[0m
+
+
+0 imported, 1 failed
+2026/02/27 16:05:45.885573 [tui] step: Importing → Done

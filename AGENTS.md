@@ -32,6 +32,8 @@ terraclaw/
         ├── model.go                 BubbleTea Model + all View/Update logic; wizard step machine
         ├── commands.go              Async tea.Cmd definitions (fetch tables, generate code, run import)
         └── styles.go                Lipgloss style constants (titleStyle, codeStyle, errorStyle, …)
+    └── debuglog/
+        └── logger.go                File-based debug logger; Init/Log/Close/Enabled singleton
 ```
 
 **Key design principles:**
@@ -140,6 +142,16 @@ go build -o terraclaw .
 
 # Run in-place (requires Steampipe running)
 go run . 
+
+# Run with debug logging enabled (writes to terraclaw.log)
+go run . --debug
+DEBUG=true go run .
+
+# In a second terminal, watch the log in real-time
+tail -f terraclaw.log
+
+# Debug subcommand — print config summary and test Steampipe (no TUI)
+go run . debug
 
 # Run doctor checks
 go run . doctor

@@ -7,6 +7,7 @@ import (
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 
+	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
 
@@ -28,9 +29,10 @@ func (p *ClaudeProvider) Name() string { return "Claude (Anthropic)" }
 // GenerateTerraform calls the Claude API to generate Terraform HCL code.
 func (p *ClaudeProvider) GenerateTerraform(ctx context.Context, resources []steampipe.Resource) (string, error) {
 	prompt := buildPrompt(resources)
+	debuglog.Log("[claude] calling API model=%s resources=%d promptLen=%d", anthropic.ModelClaudeOpus4_6, len(resources), len(prompt))
 
 	msg, err := p.client.Messages.New(ctx, anthropic.MessageNewParams{
-		Model:     anthropic.ModelClaude3_7SonnetLatest,
+		Model:     anthropic.ModelClaudeOpus4_6,
 		MaxTokens: 4096,
 		System: []anthropic.TextBlockParam{
 			{Text: "You are a Terraform expert that generates valid HCL configuration code."},
@@ -40,10 +42,14 @@ func (p *ClaudeProvider) GenerateTerraform(ctx context.Context, resources []stea
 		},
 	})
 	if err != nil {
+		debuglog.Log("[claude] API error: %v", err)
 		return "", fmt.Errorf("claude message: %w", err)
 	}
 	if len(msg.Content) == 0 {
+		debuglog.Log("[claude] API returned no content")
 		return "", fmt.Errorf("claude returned no content")
 	}
-	return msg.Content[0].Text, nil
+	result := msg.Content[0].Text
+	debuglog.Log("[claude] response received: %d chars", len(result))
+	return result, nil
 }
