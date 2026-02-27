@@ -72,6 +72,12 @@ steampipe service start
 terraclaw
 ```
 
+To verify local dependencies and configuration before running the TUI:
+
+```bash
+terraclaw doctor
+```
+
 3. Follow the interactive prompts:
    - Select your LLM provider
    - Select a cloud provider (Steampipe schema)
@@ -86,6 +92,14 @@ terraclaw
 --output-dir string    Directory to write generated Terraform files (default ".")
 --terraform-bin string Path to the terraform binary (default "terraform")
 ```
+
+### Doctor checks
+
+`terraclaw doctor` validates:
+- `steampipe` and `terraform` binaries are available on `PATH` (or via `--terraform-bin`)
+- output directory exists and is writable
+- selected `LLM_PROVIDER` has the required API key
+- Steampipe is reachable and has at least one plugin schema installed
 
 ## Project Structure
 
