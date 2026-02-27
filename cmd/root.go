@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/arunim2405/terraclaw/config"
+	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 	"github.com/arunim2405/terraclaw/internal/tui"
 )
@@ -35,6 +36,7 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().String("output-dir", ".", "Directory to write generated Terraform files")
 	rootCmd.PersistentFlags().String("terraform-bin", "terraform", "Path to the terraform binary")
+	rootCmd.PersistentFlags().Bool("debug", false, "Enable debug logging to file (see DEBUG_LOG_FILE)")
 }
 
 // runInteractive starts the BubbleTea TUI.
@@ -51,7 +53,18 @@ func runInteractive(cmd *cobra.Command, _ []string) error {
 	if v, _ := cmd.Flags().GetString("terraform-bin"); v != "" {
 		cfg.TerraformBin = v
 	}
+	if v, _ := cmd.Flags().GetBool("debug"); v {
+		cfg.Debug = true
+	}
 
+	// Initialise debug logger before anything else.
+	if cfg.Debug {
+		if initErr := debuglog.Init(cfg.DebugLogFile); initErr != nil {
+			fmt.Fprintf(os.Stderr, "warning: could not init debug log: %v\n", initErr)
+		}
+		defer debuglog.Close()
+		debuglog.Log("[startup] terraclaw starting — provider=%s outputDir=%s", cfg.LLMProvider, cfg.OutputDir)
+	}
 	// Connect to Steampipe.
 	spClient, err := steampipe.New(cfg.SteampipeConnStr())
 	if err != nil {

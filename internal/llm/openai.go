@@ -6,6 +6,7 @@ import (
 
 	openai "github.com/sashabaranov/go-openai"
 
+	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
 
@@ -27,6 +28,7 @@ func (p *OpenAIProvider) Name() string { return "ChatGPT (OpenAI)" }
 // GenerateTerraform calls OpenAI to generate Terraform HCL code.
 func (p *OpenAIProvider) GenerateTerraform(ctx context.Context, resources []steampipe.Resource) (string, error) {
 	prompt := buildPrompt(resources)
+	debuglog.Log("[openai] calling API model=%s resources=%d promptLen=%d", openai.GPT4o, len(resources), len(prompt))
 
 	resp, err := p.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model: openai.GPT4o,
@@ -44,10 +46,14 @@ func (p *OpenAIProvider) GenerateTerraform(ctx context.Context, resources []stea
 		Temperature: 0.2,
 	})
 	if err != nil {
+		debuglog.Log("[openai] API error: %v", err)
 		return "", fmt.Errorf("openai completion: %w", err)
 	}
 	if len(resp.Choices) == 0 {
+		debuglog.Log("[openai] API returned no choices")
 		return "", fmt.Errorf("openai returned no choices")
 	}
-	return resp.Choices[0].Message.Content, nil
+	result := resp.Choices[0].Message.Content
+	debuglog.Log("[openai] response received: %d chars", len(result))
+	return result, nil
 }

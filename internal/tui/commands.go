@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/arunim2405/terraclaw/config"
+	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/llm"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 	tf "github.com/arunim2405/terraclaw/internal/terraform"
@@ -63,10 +64,17 @@ func tickCmd() tea.Cmd {
 // fetchTablesCmd loads the available tables for the selected schema.
 func fetchTablesCmd(schema string) tea.Cmd {
 	return func() tea.Msg {
+		debuglog.Log("[steampipe] fetching tables for schema=%s", schema)
 		if steampipeClient == nil {
+			debuglog.Log("[steampipe] ERROR: client not initialized")
 			return tablesLoadedMsg{err: fmt.Errorf("steampipe client not initialized")}
 		}
 		tables, err := steampipeClient.ListTables(schema)
+		if err != nil {
+			debuglog.Log("[steampipe] ERROR listing tables: %v", err)
+		} else {
+			debuglog.Log("[steampipe] fetched %d table(s) from schema=%s", len(tables), schema)
+		}
 		return tablesLoadedMsg{tables: tables, err: err}
 	}
 }
@@ -74,13 +82,17 @@ func fetchTablesCmd(schema string) tea.Cmd {
 // fetchResourcesCmd loads resources for a given schema/table.
 func fetchResourcesCmd(schema, table string) tea.Cmd {
 	return func() tea.Msg {
+		debuglog.Log("[steampipe] fetching resources for schema=%s table=%s", schema, table)
 		if steampipeClient == nil {
+			debuglog.Log("[steampipe] ERROR: client not initialized")
 			return resourcesLoadedMsg{err: fmt.Errorf("steampipe client not initialized")}
 		}
 		raw, err := steampipeClient.FetchResources(schema, table)
 		if err != nil {
+			debuglog.Log("[steampipe] ERROR fetching resources: %v", err)
 			return resourcesLoadedMsg{err: err}
 		}
+		debuglog.Log("[steampipe] fetched %d resource(s) from %s.%s", len(raw), schema, table)
 		items := make([]ResourceItem, len(raw))
 		for i, r := range raw {
 			label := r.Name
@@ -99,12 +111,16 @@ func fetchResourcesCmd(schema, table string) tea.Cmd {
 // generateCodeCmd calls the selected LLM to generate Terraform code.
 func generateCodeCmd(providerName string, resources []ResourceItem) tea.Cmd {
 	return func() tea.Msg {
+		debuglog.Log("[llm] generateCode called: providerName=%q resources=%d", providerName, len(resources))
 		if appConfig == nil {
+			debuglog.Log("[llm] ERROR: config not initialized")
 			return asyncResultMsg{err: fmt.Errorf("config not initialized")}
 		}
 
 		// Map provider display name back to config provider.
 		switch {
+		case strings.Contains(providerName, "Azure"):
+			appConfig.LLMProvider = config.ProviderAzureOpenAI
 		case strings.Contains(providerName, "OpenAI"):
 			appConfig.LLMProvider = config.ProviderOpenAI
 		case strings.Contains(providerName, "Anthropic"):
@@ -112,9 +128,11 @@ func generateCodeCmd(providerName string, resources []ResourceItem) tea.Cmd {
 		case strings.Contains(providerName, "Google"):
 			appConfig.LLMProvider = config.ProviderGemini
 		}
+		debuglog.Log("[llm] resolved provider: %s", appConfig.LLMProvider)
 
 		provider, err := llm.New(appConfig)
 		if err != nil {
+			debuglog.Log("[llm] ERROR creating provider: %v", err)
 			return asyncResultMsg{err: err}
 		}
 
@@ -125,14 +143,22 @@ func generateCodeCmd(providerName string, resources []ResourceItem) tea.Cmd {
 			}
 		}
 
+		debuglog.Log("[llm] calling %s API with %d resource(s)", provider.Name(), len(raw))
 		code, err := provider.GenerateTerraform(context.Background(), raw)
 		if err != nil {
+			debuglog.Log("[llm] ERROR from %s: %v", provider.Name(), err)
 			return asyncResultMsg{err: err}
 		}
+		debuglog.Log("[llm] %s response received: %d chars", provider.Name(), len(code))
 
 		// Also write the code to disk.
 		if appConfig != nil {
-			_, _ = tf.WriteConfig(appConfig.OutputDir, code)
+			outPath, writeErr := tf.WriteConfig(appConfig.OutputDir, code)
+			if writeErr != nil {
+				debuglog.Log("[terraform] ERROR writing config: %v", writeErr)
+			} else {
+				debuglog.Log("[terraform] config written to %s", outPath)
+			}
 		}
 
 		return asyncResultMsg{code: code}
@@ -142,7 +168,9 @@ func generateCodeCmd(providerName string, resources []ResourceItem) tea.Cmd {
 // runImportCmd runs terraform import for the selected resources.
 func runImportCmd(resources []ResourceItem, _ string) tea.Cmd {
 	return func() tea.Msg {
+		debuglog.Log("[terraform] runImport called for %d resource(s)", len(resources))
 		if appConfig == nil {
+			debuglog.Log("[terraform] ERROR: config not initialized")
 			return asyncResultMsg{err: fmt.Errorf("config not initialized")}
 		}
 
@@ -153,8 +181,10 @@ func runImportCmd(resources []ResourceItem, _ string) tea.Cmd {
 			}
 		}
 
+		debuglog.Log("[terraform] running import with bin=%s outputDir=%s", appConfig.TerraformBin, appConfig.OutputDir)
 		results := tf.RunImports(appConfig.TerraformBin, appConfig.OutputDir, raw)
 		summary := tf.SummaryText(results)
+		debuglog.Log("[terraform] import complete: %s", summary)
 		return asyncResultMsg{imports: summary}
 	}
 }

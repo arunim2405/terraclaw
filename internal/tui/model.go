@@ -7,22 +7,24 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/arunim2405/terraclaw/internal/debuglog"
 )
 
 // Step tracks which stage of the wizard the user is on.
 type Step int
 
 const (
-	StepSelectProvider    Step = iota // Choose LLM provider
-	StepSelectSchema                   // Choose cloud provider / Steampipe schema
-	StepSelectTable                    // Choose resource type (table)
-	StepSelectResources                // Multi-select individual resources
-	StepConfirmGenerate                // Review selected resources and confirm
-	StepGenerating                     // Waiting for LLM response
-	StepViewCode                       // Review generated Terraform code
-	StepConfirmImport                  // Confirm running terraform import
-	StepImporting                      // Running terraform import
-	StepDone                           // Show results
+	StepSelectProvider  Step = iota // Choose LLM provider
+	StepSelectSchema                // Choose cloud provider / Steampipe schema
+	StepSelectTable                 // Choose resource type (table)
+	StepSelectResources             // Multi-select individual resources
+	StepConfirmGenerate             // Review selected resources and confirm
+	StepGenerating                  // Waiting for LLM response
+	StepViewCode                    // Review generated Terraform code
+	StepConfirmImport               // Confirm running terraform import
+	StepImporting                   // Running terraform import
+	StepDone                        // Show results
 )
 
 // listItem wraps a string value to satisfy the list.Item interface.
@@ -103,6 +105,7 @@ func New(schemas []string) Model {
 		listItem{title: "ChatGPT (OpenAI)", desc: "GPT-4o powered code generation"},
 		listItem{title: "Claude (Anthropic)", desc: "Claude 3.7 Sonnet powered code generation"},
 		listItem{title: "Gemini (Google)", desc: "Gemini 2.0 Flash powered code generation"},
+		listItem{title: "Azure OpenAI (Azure AI Foundry)", desc: "GPT-4o via Azure AI Foundry"},
 	}
 
 	l := newList(llmProviders, "Select LLM Provider", 0)
@@ -251,6 +254,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 	switch m.step {
 	case StepSelectProvider:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
+			debuglog.Log("[tui] step: SelectProvider → SelectSchema (provider=%q)", item.title)
 			m.selectedLLMProvider = item.title
 			m.step = StepSelectSchema
 			m.list = buildSchemaList(m.schemas)
@@ -258,6 +262,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 
 	case StepSelectSchema:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
+			debuglog.Log("[tui] step: SelectSchema → loading tables (schema=%q)", item.title)
 			m.selectedSchema = item.title
 			// Tables are loaded via command; show loading step.
 			return m, fetchTablesCmd(m.selectedSchema)
@@ -265,35 +270,49 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 
 	case StepSelectTable:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
+			debuglog.Log("[tui] step: SelectTable → loading resources (table=%q)", item.title)
 			m.selectedTable = item.title
 			return m, fetchResourcesCmd(m.selectedSchema, m.selectedTable)
 		}
 
 	case StepSelectResources:
-		// Move to confirmation step.
+		// If user didn't explicitly toggle any resources, auto-select all.
+		if len(m.selectedResources) == 0 && len(m.resources) > 0 {
+			for i := range m.resources {
+				m.resources[i].Selected = true
+			}
+			m.selectedResources = make([]ResourceItem, len(m.resources))
+			copy(m.selectedResources, m.resources)
+		}
+		debuglog.Log("[tui] step: SelectResources → ConfirmGenerate (%d resource(s) selected)", len(m.selectedResources))
 		m.step = StepConfirmGenerate
 		m.list = buildConfirmList("Generate Terraform code for selected resources?")
 
 	case StepConfirmGenerate:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
 			if item.title == "Yes" {
+				debuglog.Log("[tui] step: ConfirmGenerate → Generating")
 				m.step = StepGenerating
 				return m, tea.Batch(tickCmd(), generateCodeCmd(m.selectedLLMProvider, m.selectedResources))
 			}
+			debuglog.Log("[tui] step: ConfirmGenerate → Quit (user declined)")
 			return m, tea.Quit
 		}
 
 	case StepViewCode:
 		// Enter on code view → confirm import.
+		debuglog.Log("[tui] step: ViewCode → ConfirmImport")
 		m.step = StepConfirmImport
 		m.list = buildConfirmList("Run terraform import for selected resources?")
 
 	case StepConfirmImport:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
 			if item.title == "Yes" {
+				debuglog.Log("[tui] step: ConfirmImport → Importing")
 				m.step = StepImporting
 				return m, tea.Batch(tickCmd(), runImportCmd(m.selectedResources, m.generatedCode))
 			}
+			debuglog.Log("[tui] step: ConfirmImport → Quit (user declined)")
 			return m, tea.Quit
 		}
 
@@ -332,11 +351,16 @@ func (m Model) toggleResource() (tea.Model, tea.Cmd) {
 
 func (m Model) handleAsyncResult(res asyncResult) (tea.Model, tea.Cmd) {
 	m.err = res.err
+	if res.err != nil {
+		debuglog.Log("[tui] async error: %v", res.err)
+	}
 	if res.code != "" {
+		debuglog.Log("[tui] step: Generating → ViewCode (code length=%d)", len(res.code))
 		m.generatedCode = res.code
 		m.step = StepViewCode
 		m.codeScrollOffset = 0
 	} else if res.imports != "" {
+		debuglog.Log("[tui] step: Importing → Done")
 		m.importResults = res.imports
 		m.step = StepDone
 	}
@@ -439,6 +463,7 @@ func buildProviderList() list.Model {
 		listItem{title: "ChatGPT (OpenAI)", desc: "GPT-4o powered code generation"},
 		listItem{title: "Claude (Anthropic)", desc: "Claude 3.7 Sonnet powered code generation"},
 		listItem{title: "Gemini (Google)", desc: "Gemini 2.0 Flash powered code generation"},
+		listItem{title: "Azure OpenAI (Azure AI Foundry)", desc: "GPT-4o via Azure AI Foundry"},
 	}
 	return newList(items, "Select LLM Provider", 0)
 }
