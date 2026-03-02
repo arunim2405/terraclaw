@@ -46,6 +46,9 @@ type Config struct {
 	// Output
 	OutputDir string
 
+	// Resource scanning
+	ScanTables string // comma-separated table names, or "*" for all, or empty for key resources
+
 	// Debug
 	Debug        bool
 	DebugLogFile string
@@ -57,11 +60,11 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		SteampipeHost:     envOrDefault("STEAMPIPE_HOST", "localhost"),
-		SteampipePort:     envOrDefault("STEAMPIPE_PORT", "9193"),
-		SteampipeDB:       envOrDefault("STEAMPIPE_DB", "steampipe"),
-		SteampipeUser:     envOrDefault("STEAMPIPE_USER", "steampipe"),
-		SteampipePassword: envOrDefault("STEAMPIPE_PASSWORD", ""),
+		SteampipeHost:         envOrDefault("STEAMPIPE_HOST", "localhost"),
+		SteampipePort:         envOrDefault("STEAMPIPE_PORT", "9193"),
+		SteampipeDB:           envOrDefault("STEAMPIPE_DB", "steampipe"),
+		SteampipeUser:         envOrDefault("STEAMPIPE_USER", "steampipe"),
+		SteampipePassword:     envOrDefault("STEAMPIPE_PASSWORD", ""),
 		OpenAIAPIKey:          os.Getenv("OPENAI_API_KEY"),
 		AnthropicAPIKey:       os.Getenv("ANTHROPIC_API_KEY"),
 		GeminiAPIKey:          os.Getenv("GEMINI_API_KEY"),
@@ -71,10 +74,11 @@ func Load() (*Config, error) {
 		AzureOpenAIDeployment: envOrDefault("AZURE_OPENAI_DEPLOYMENT", "gpt-4o"),
 		AzureOpenAIAPIVersion: envOrDefault("AZURE_OPENAI_API_VERSION", "2024-12-01-preview"),
 		AzureOpenAIModelType:  envOrDefault("AZURE_OPENAI_MODEL_TYPE", "chat"),
-		TerraformBin:         envOrDefault("TERRAFORM_BIN", "terraform"),
-		OutputDir:            envOrDefault("OUTPUT_DIR", "."),
-		Debug:                os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1",
-		DebugLogFile:         envOrDefault("DEBUG_LOG_FILE", "terraclaw.log"),
+		TerraformBin:          envOrDefault("TERRAFORM_BIN", "terraform"),
+		OutputDir:             envOrDefault("OUTPUT_DIR", "."),
+		ScanTables:            os.Getenv("SCAN_TABLES"),
+		Debug:                 os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1",
+		DebugLogFile:          envOrDefault("DEBUG_LOG_FILE", "terraclaw.log"),
 	}
 
 	return cfg, nil

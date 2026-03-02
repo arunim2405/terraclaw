@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/arunim2405/terraclaw/config"
 	"github.com/arunim2405/terraclaw/internal/debuglog"
+	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 	tf "github.com/arunim2405/terraclaw/internal/terraform"
@@ -35,16 +35,15 @@ func SetSteampipeClient(c *steampipe.Client) { steampipeClient = c }
 // spinnerTickMsg triggers a spinner frame update.
 type spinnerTickMsg struct{}
 
-// tablesLoadedMsg carries the tables fetched from Steampipe.
-type tablesLoadedMsg struct {
-	tables []string
-	err    error
+// scanProgressMsg reports scan progress.
+type scanProgressMsg struct {
+	message string
 }
 
-// resourcesLoadedMsg carries the resources fetched from Steampipe.
-type resourcesLoadedMsg struct {
-	resources []ResourceItem
-	err       error
+// graphBuiltMsg carries the completed resource graph.
+type graphBuiltMsg struct {
+	graph *graph.Graph
+	err   error
 }
 
 // asyncResultMsg carries the result of an async code generation or import.
@@ -61,50 +60,51 @@ func tickCmd() tea.Cmd {
 	})
 }
 
-// fetchTablesCmd loads the available tables for the selected schema.
-func fetchTablesCmd(schema string) tea.Cmd {
+// scanResourcesCmd scans cloud resources and builds the dependency graph.
+func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 	return func() tea.Msg {
-		debuglog.Log("[steampipe] fetching tables for schema=%s", schema)
 		if steampipeClient == nil {
-			debuglog.Log("[steampipe] ERROR: client not initialized")
-			return tablesLoadedMsg{err: fmt.Errorf("steampipe client not initialized")}
+			return graphBuiltMsg{err: fmt.Errorf("steampipe client not initialized")}
 		}
-		tables, err := steampipeClient.ListTables(schema)
-		if err != nil {
-			debuglog.Log("[steampipe] ERROR listing tables: %v", err)
-		} else {
-			debuglog.Log("[steampipe] fetched %d table(s) from schema=%s", len(tables), schema)
-		}
-		return tablesLoadedMsg{tables: tables, err: err}
-	}
-}
 
-// fetchResourcesCmd loads resources for a given schema/table.
-func fetchResourcesCmd(schema, table string) tea.Cmd {
-	return func() tea.Msg {
-		debuglog.Log("[steampipe] fetching resources for schema=%s table=%s", schema, table)
-		if steampipeClient == nil {
-			debuglog.Log("[steampipe] ERROR: client not initialized")
-			return resourcesLoadedMsg{err: fmt.Errorf("steampipe client not initialized")}
+		// Determine which tables to scan.
+		var tables []string
+		switch scanMode {
+		case "all":
+			debuglog.Log("[graph] scanning ALL tables for schema=%s", schema)
+			var err error
+			tables, err = steampipeClient.ListTables(schema)
+			if err != nil {
+				return graphBuiltMsg{err: fmt.Errorf("list tables: %w", err)}
+			}
+		default: // "key"
+			// Use configured tables if set, else default AWS tables.
+			if appConfig != nil && appConfig.ScanTables != "" && appConfig.ScanTables != "*" {
+				tables = strings.Split(appConfig.ScanTables, ",")
+				for i := range tables {
+					tables[i] = strings.TrimSpace(tables[i])
+				}
+			} else {
+				tables = graph.DefaultAWSTables
+			}
+			debuglog.Log("[graph] scanning %d key tables for schema=%s", len(tables), schema)
 		}
-		raw, err := steampipeClient.FetchResources(schema, table)
+
+		g := graph.New()
+		err := g.Build(steampipeClient, schema, tables, func(scanned, total int, table string) {
+			debuglog.Log("[graph] progress: %d/%d — %s", scanned, total, table)
+			// Note: we can't send tea.Msg from inside a callback directly,
+			// but the spinner tick will keep the UI responsive.
+		})
 		if err != nil {
-			debuglog.Log("[steampipe] ERROR fetching resources: %v", err)
-			return resourcesLoadedMsg{err: err}
+			return graphBuiltMsg{err: err}
 		}
-		debuglog.Log("[steampipe] fetched %d resource(s) from %s.%s", len(raw), schema, table)
-		items := make([]ResourceItem, len(raw))
-		for i, r := range raw {
-			label := r.Name
-			if label == "" {
-				label = r.ID
-			}
-			items[i] = ResourceItem{
-				Resource: r,
-				label:    label,
-			}
-		}
-		return resourcesLoadedMsg{resources: items, err: nil}
+
+		// Detect relationships between resources.
+		g.DetectRelationships()
+		debuglog.Log("[graph] build complete: %d nodes, %d edges", g.Stats.ResourceCount, g.Stats.EdgeCount)
+
+		return graphBuiltMsg{graph: g}
 	}
 }
 
@@ -193,38 +193,9 @@ func runImportCmd(resources []ResourceItem, _ string) tea.Cmd {
 // Model update additions for loaded data
 // ---------------------------------------------------------------------------
 
-// UpdateForMessages extends Model.Update to handle data-load messages.
-// It returns the updated model, a command, and whether the message was handled.
+// updateForMessages extends Model.Update to handle data-load messages.
 func (m Model) updateForMessages(msg tea.Msg) (Model, tea.Cmd, bool) {
-	switch msg := msg.(type) {
-	case tablesLoadedMsg:
-		if msg.err != nil {
-			m.err = msg.err
-			return m, nil, true
-		}
-		m.tables = msg.tables
-		m.step = StepSelectTable
-		m.list = buildTableList(msg.tables)
-		return m, nil, true
-
-	case resourcesLoadedMsg:
-		if msg.err != nil {
-			m.err = msg.err
-			return m, nil, true
-		}
-		m.resources = msg.resources
-		m.selectedResources = nil
-		m.step = StepSelectResources
-
-		items := make([]list.Item, len(msg.resources))
-		for i, r := range msg.resources {
-			items[i] = listItem{
-				title: "  " + r.label,
-				desc:  r.Resource.String(),
-			}
-		}
-		m.list = newList(items, fmt.Sprintf("Select Resources from %s.%s", m.selectedSchema, m.selectedTable), 0)
-		return m, nil, true
-	}
+	// No table/resource loading messages needed anymore — the graph handles it.
+	_ = msg
 	return m, nil, false
 }

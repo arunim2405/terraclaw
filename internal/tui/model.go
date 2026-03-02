@@ -9,22 +9,24 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/arunim2405/terraclaw/internal/debuglog"
+	"github.com/arunim2405/terraclaw/internal/graph"
 )
 
 // Step tracks which stage of the wizard the user is on.
 type Step int
 
 const (
-	StepSelectProvider  Step = iota // Choose LLM provider
-	StepSelectSchema                // Choose cloud provider / Steampipe schema
-	StepSelectTable                 // Choose resource type (table)
-	StepSelectResources             // Multi-select individual resources
-	StepConfirmGenerate             // Review selected resources and confirm
-	StepGenerating                  // Waiting for LLM response
-	StepViewCode                    // Review generated Terraform code
-	StepConfirmImport               // Confirm running terraform import
-	StepImporting                   // Running terraform import
-	StepDone                        // Show results
+	StepSelectSchema        Step = iota // Choose cloud provider / Steampipe schema
+	StepSelectScanMode                  // Choose "Key Resources" or "All Resources"
+	StepScanning                        // Scanning tables / building graph (progress)
+	StepBrowseResourceTypes             // Browse discovered resource types
+	StepSelectResources                 // Select individual resources (with related expansion)
+	StepConfirmGenerate                 // Confirm before calling LLM
+	StepGenerating                      // Waiting for LLM response
+	StepViewCode                        // Review generated Terraform code
+	StepConfirmImport                   // Confirm running terraform import
+	StepImporting                       // Running terraform import
+	StepDone                            // Show results
 )
 
 // listItem wraps a string value to satisfy the list.Item interface.
@@ -36,6 +38,26 @@ type listItem struct {
 func (i listItem) Title() string       { return i.title }
 func (i listItem) Description() string { return i.desc }
 func (i listItem) FilterValue() string { return i.title }
+
+// ResourceItem represents a selectable cloud resource in the TUI.
+type ResourceItem struct {
+	Resource interface{ String() string }
+	Selected bool
+	NodeKey  string // graph node key for relationship lookups
+	label    string
+}
+
+func (r ResourceItem) Title() string       { return r.label }
+func (r ResourceItem) Description() string { return r.Resource.String() }
+func (r ResourceItem) FilterValue() string { return r.label }
+
+// providerDisplayName maps a config provider constant to a human-readable name.
+var providerDisplayName = map[string]string{
+	"openai":       "ChatGPT (OpenAI)",
+	"claude":       "Claude (Anthropic)",
+	"gemini":       "Gemini (Google)",
+	"azure-openai": "Azure OpenAI (Azure AI Foundry)",
+}
 
 // Model is the top-level BubbleTea model for terraclaw.
 type Model struct {
@@ -51,16 +73,20 @@ type Model struct {
 
 	// Available choices loaded from Steampipe.
 	schemas []string
-	tables  []string
 
 	// User selections.
 	selectedLLMProvider string
 	selectedSchema      string
-	selectedTable       string
-	selectedResources   []ResourceItem
+	selectedScanMode    string // "key" or "all"
 
-	// Resources fetched from Steampipe.
-	resources []ResourceItem
+	// Resource graph.
+	resourceGraph *graph.Graph
+
+	// Browsing state.
+	resourceTypes     []string       // discovered resource types
+	selectedType      string         // currently selected resource type
+	resources         []ResourceItem // resources for current type
+	selectedResources []ResourceItem // user-toggled resources across all types
 
 	// Generated Terraform code.
 	generatedCode string
@@ -77,6 +103,9 @@ type Model struct {
 	// Scroll offset for code view.
 	codeScrollOffset int
 
+	// Scan progress.
+	scanProgress string
+
 	// Channel to receive async results.
 	resultCh chan asyncResult
 }
@@ -88,34 +117,24 @@ type asyncResult struct {
 	imports string
 }
 
-// ResourceItem represents a selectable cloud resource in the TUI.
-type ResourceItem struct {
-	Resource interface{ String() string }
-	Selected bool
-	label    string
-}
-
-func (r ResourceItem) Title() string       { return r.label }
-func (r ResourceItem) Description() string { return r.Resource.String() }
-func (r ResourceItem) FilterValue() string { return r.label }
-
 // New creates the initial BubbleTea model.
-func New(schemas []string) Model {
-	llmProviders := []list.Item{
-		listItem{title: "ChatGPT (OpenAI)", desc: "GPT-4o powered code generation"},
-		listItem{title: "Claude (Anthropic)", desc: "Claude 3.7 Sonnet powered code generation"},
-		listItem{title: "Gemini (Google)", desc: "Gemini 2.0 Flash powered code generation"},
-		listItem{title: "Azure OpenAI (Azure AI Foundry)", desc: "GPT-4o via Azure AI Foundry"},
+// The LLM provider is read from config (LLM_PROVIDER); the TUI no longer asks
+// the user to pick one.
+func New(schemas []string, llmProvider string) Model {
+	name := providerDisplayName[llmProvider]
+	if name == "" {
+		name = llmProvider
 	}
 
-	l := newList(llmProviders, "Select LLM Provider", 0)
+	l := buildSchemaList(schemas)
 
 	return Model{
-		step:    StepSelectProvider,
-		list:    l,
-		schemas: schemas,
-		width:   80,
-		height:  24,
+		step:                StepSelectSchema,
+		list:                l,
+		schemas:             schemas,
+		selectedLLMProvider: name,
+		width:               80,
+		height:              24,
 	}
 }
 
@@ -166,6 +185,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case asyncResultMsg:
 		return m.handleAsyncResult(asyncResult(msg))
+
+	case scanProgressMsg:
+		m.scanProgress = msg.message
+		return m, nil
+
+	case graphBuiltMsg:
+		return m.handleGraphBuilt(msg)
 	}
 
 	// Handle data-load messages (tables / resources from Steampipe).
@@ -184,7 +210,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) isListStep() bool {
 	switch m.step {
-	case StepSelectProvider, StepSelectSchema, StepSelectTable, StepSelectResources, StepConfirmGenerate, StepConfirmImport:
+	case StepSelectSchema, StepSelectScanMode, StepBrowseResourceTypes,
+		StepSelectResources, StepConfirmGenerate, StepConfirmImport:
 		return true
 	}
 	return false
@@ -203,6 +230,12 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Space toggles selection on resource step.
 		if m.step == StepSelectResources {
 			return m.toggleResource()
+		}
+
+	case "r":
+		// 'r' on resource step: expand related resources for the highlighted item.
+		if m.step == StepSelectResources {
+			return m.expandRelated()
 		}
 
 	case "up", "k":
@@ -235,14 +268,19 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 func (m Model) goBack() (tea.Model, tea.Cmd) {
 	switch m.step {
 	case StepSelectSchema:
-		m.step = StepSelectProvider
-		m.list = buildProviderList()
-	case StepSelectTable:
+		return m, tea.Quit
+	case StepSelectScanMode:
 		m.step = StepSelectSchema
 		m.list = buildSchemaList(m.schemas)
+	case StepBrowseResourceTypes:
+		m.step = StepSelectScanMode
+		m.list = buildScanModeList()
 	case StepSelectResources:
-		m.step = StepSelectTable
-		m.list = buildTableList(m.tables)
+		m.step = StepBrowseResourceTypes
+		m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph)
+	case StepConfirmGenerate:
+		m.step = StepBrowseResourceTypes
+		m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph)
 	case StepViewCode:
 		m.step = StepConfirmGenerate
 		m.list = buildConfirmList("Generate Terraform code for selected resources?")
@@ -252,31 +290,40 @@ func (m Model) goBack() (tea.Model, tea.Cmd) {
 
 func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 	switch m.step {
-	case StepSelectProvider:
-		if item, ok := m.list.SelectedItem().(listItem); ok {
-			debuglog.Log("[tui] step: SelectProvider → SelectSchema (provider=%q)", item.title)
-			m.selectedLLMProvider = item.title
-			m.step = StepSelectSchema
-			m.list = buildSchemaList(m.schemas)
-		}
-
 	case StepSelectSchema:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
-			debuglog.Log("[tui] step: SelectSchema → loading tables (schema=%q)", item.title)
+			debuglog.Log("[tui] step: SelectSchema → SelectScanMode (schema=%q)", item.title)
 			m.selectedSchema = item.title
-			// Tables are loaded via command; show loading step.
-			return m, fetchTablesCmd(m.selectedSchema)
+			m.step = StepSelectScanMode
+			m.list = buildScanModeList()
 		}
 
-	case StepSelectTable:
+	case StepSelectScanMode:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
-			debuglog.Log("[tui] step: SelectTable → loading resources (table=%q)", item.title)
-			m.selectedTable = item.title
-			return m, fetchResourcesCmd(m.selectedSchema, m.selectedTable)
+			switch item.title {
+			case "Key Resources (Recommended)":
+				m.selectedScanMode = "key"
+			case "All Resources":
+				m.selectedScanMode = "all"
+			}
+			debuglog.Log("[tui] step: SelectScanMode → Scanning (mode=%q)", m.selectedScanMode)
+			m.step = StepScanning
+			m.scanProgress = "Starting scan..."
+			return m, tea.Batch(tickCmd(), scanResourcesCmd(m.selectedSchema, m.selectedScanMode))
+		}
+
+	case StepBrowseResourceTypes:
+		if item, ok := m.list.SelectedItem().(listItem); ok {
+			resourceType := item.title
+			debuglog.Log("[tui] step: BrowseResourceTypes → SelectResources (type=%q)", resourceType)
+			m.selectedType = resourceType
+			m.resources = buildResourceItems(m.resourceGraph, resourceType)
+			m.step = StepSelectResources
+			m.list = buildResourceList(m.resources, resourceType)
 		}
 
 	case StepSelectResources:
-		// If user didn't explicitly toggle any resources, auto-select all.
+		// If user didn't explicitly toggle any resources, auto-select all visible.
 		if len(m.selectedResources) == 0 && len(m.resources) > 0 {
 			for i := range m.resources {
 				m.resources[i].Selected = true
@@ -286,7 +333,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		}
 		debuglog.Log("[tui] step: SelectResources → ConfirmGenerate (%d resource(s) selected)", len(m.selectedResources))
 		m.step = StepConfirmGenerate
-		m.list = buildConfirmList("Generate Terraform code for selected resources?")
+		m.list = buildConfirmList(fmt.Sprintf("Generate Terraform code for %d selected resource(s)?", len(m.selectedResources)))
 
 	case StepConfirmGenerate:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
@@ -300,7 +347,6 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		}
 
 	case StepViewCode:
-		// Enter on code view → confirm import.
 		debuglog.Log("[tui] step: ViewCode → ConfirmImport")
 		m.step = StepConfirmImport
 		m.list = buildConfirmList("Run terraform import for selected resources?")
@@ -326,12 +372,15 @@ func (m Model) toggleResource() (tea.Model, tea.Cmd) {
 	idx := m.list.Index()
 	if idx >= 0 && idx < len(m.resources) {
 		m.resources[idx].Selected = !m.resources[idx].Selected
+
+		// Rebuild selectedResources from all selected items.
 		m.selectedResources = nil
 		for _, r := range m.resources {
 			if r.Selected {
 				m.selectedResources = append(m.selectedResources, r)
 			}
 		}
+
 		// Rebuild list items to reflect selection state.
 		items := make([]list.Item, len(m.resources))
 		for i, r := range m.resources {
@@ -346,6 +395,92 @@ func (m Model) toggleResource() (tea.Model, tea.Cmd) {
 		}
 		m.list.SetItems(items)
 	}
+	return m, nil
+}
+
+// expandRelated finds all resources related to the currently highlighted
+// resource (via the graph) and adds them to the current resource list.
+func (m Model) expandRelated() (tea.Model, tea.Cmd) {
+	idx := m.list.Index()
+	if idx < 0 || idx >= len(m.resources) || m.resourceGraph == nil {
+		return m, nil
+	}
+
+	nodeKey := m.resources[idx].NodeKey
+	if nodeKey == "" {
+		return m, nil
+	}
+
+	related := m.resourceGraph.RelatedTo(nodeKey)
+	debuglog.Log("[tui] expanding related for %s: %d node(s) found", nodeKey, len(related))
+
+	// Build a set of existing resource keys.
+	existing := make(map[string]bool)
+	for _, r := range m.resources {
+		existing[r.NodeKey] = true
+	}
+
+	added := 0
+	for _, node := range related {
+		if existing[node.Key] {
+			continue
+		}
+		label := node.Resource.Name
+		if label == "" {
+			label = node.Resource.ID
+		}
+		m.resources = append(m.resources, ResourceItem{
+			Resource: node.Resource,
+			Selected: true, // auto-select related resources
+			NodeKey:  node.Key,
+			label:    fmt.Sprintf("[%s] %s", node.Resource.Type, label),
+		})
+		existing[node.Key] = true
+		added++
+	}
+
+	if added > 0 {
+		// Also add them to selectedResources.
+		m.selectedResources = nil
+		for _, r := range m.resources {
+			if r.Selected {
+				m.selectedResources = append(m.selectedResources, r)
+			}
+		}
+
+		// Rebuild the list.
+		items := make([]list.Item, len(m.resources))
+		for i, r := range m.resources {
+			prefix := "  "
+			if r.Selected {
+				prefix = "✓ "
+			}
+			items[i] = listItem{
+				title: prefix + r.label,
+				desc:  r.Resource.String(),
+			}
+		}
+		m.list.SetItems(items)
+		debuglog.Log("[tui] added %d related resource(s), total=%d", added, len(m.resources))
+	}
+
+	return m, nil
+}
+
+func (m Model) handleGraphBuilt(msg graphBuiltMsg) (tea.Model, tea.Cmd) {
+	if msg.err != nil {
+		m.err = msg.err
+		debuglog.Log("[tui] graph build error: %v", msg.err)
+		return m, nil
+	}
+
+	m.resourceGraph = msg.graph
+	m.resourceTypes = msg.graph.ResourceTypes()
+	debuglog.Log("[tui] graph built: %d type(s), %d node(s), %d edge(s)",
+		len(m.resourceTypes), msg.graph.Stats.ResourceCount, msg.graph.Stats.EdgeCount)
+
+	m.step = StepBrowseResourceTypes
+	m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph)
 	return m, nil
 }
 
@@ -370,9 +505,12 @@ func (m Model) handleAsyncResult(res asyncResult) (tea.Model, tea.Cmd) {
 // View implements tea.Model.
 func (m Model) View() string {
 	switch m.step {
-	case StepSelectProvider, StepSelectSchema, StepSelectTable, StepSelectResources,
-		StepConfirmGenerate, StepConfirmImport:
+	case StepSelectSchema, StepSelectScanMode, StepBrowseResourceTypes,
+		StepSelectResources, StepConfirmGenerate, StepConfirmImport:
 		return m.listView()
+
+	case StepScanning:
+		return m.scanView()
 
 	case StepGenerating:
 		return m.loadingView("Generating Terraform code...")
@@ -394,15 +532,25 @@ func (m Model) listView() string {
 	sb.WriteString("\n")
 	sb.WriteString(m.list.View())
 	sb.WriteString("\n\n")
-	if m.step == StepSelectResources {
-		sb.WriteString(infoStyle.Render("  [space] toggle selection • [enter] confirm • [esc] back • [q] quit"))
-	} else {
+	switch m.step {
+	case StepSelectResources:
+		sb.WriteString(infoStyle.Render("  [space] toggle • [r] expand related • [enter] confirm • [esc] back • [q] quit"))
+	default:
 		sb.WriteString(infoStyle.Render("  [enter] select • [esc] back • [q] quit"))
 	}
 	if m.err != nil {
 		sb.WriteString("\n" + errorStyle.Render("  Error: "+m.err.Error()))
 	}
 	return sb.String()
+}
+
+func (m Model) scanView() string {
+	spinner := spinnerChars[m.spinnerFrame%len(spinnerChars)]
+	return fmt.Sprintf("\n\n  %s %s\n\n  %s\n",
+		spinner,
+		infoStyle.Render("Scanning cloud resources..."),
+		infoStyle.Render(m.scanProgress),
+	)
 }
 
 func (m Model) loadingView(msg string) string {
@@ -458,16 +606,6 @@ func (m Model) doneView() string {
 // Helper builders
 // ---------------------------------------------------------------------------
 
-func buildProviderList() list.Model {
-	items := []list.Item{
-		listItem{title: "ChatGPT (OpenAI)", desc: "GPT-4o powered code generation"},
-		listItem{title: "Claude (Anthropic)", desc: "Claude 3.7 Sonnet powered code generation"},
-		listItem{title: "Gemini (Google)", desc: "Gemini 2.0 Flash powered code generation"},
-		listItem{title: "Azure OpenAI (Azure AI Foundry)", desc: "GPT-4o via Azure AI Foundry"},
-	}
-	return newList(items, "Select LLM Provider", 0)
-}
-
 func buildSchemaList(schemas []string) list.Model {
 	items := make([]list.Item, len(schemas))
 	for i, s := range schemas {
@@ -476,12 +614,66 @@ func buildSchemaList(schemas []string) list.Model {
 	return newList(items, "Select Cloud Provider", 0)
 }
 
-func buildTableList(tables []string) list.Model {
-	items := make([]list.Item, len(tables))
-	for i, t := range tables {
-		items[i] = listItem{title: t, desc: "Resource type"}
+func buildScanModeList() list.Model {
+	items := []list.Item{
+		listItem{
+			title: "Key Resources (Recommended)",
+			desc:  fmt.Sprintf("Scan %d key AWS resource types (VPCs, EC2, IAM, S3, RDS, etc.)", len(graph.DefaultAWSTables)),
+		},
+		listItem{
+			title: "All Resources",
+			desc:  "Scan ALL resource types (may take several minutes)",
+		},
+	}
+	return newList(items, "Select Scan Mode", 6)
+}
+
+func buildResourceTypeList(types []string, g *graph.Graph) list.Model {
+	items := make([]list.Item, len(types))
+	for i, t := range types {
+		nodes := g.NodesByType(t)
+		items[i] = listItem{
+			title: t,
+			desc:  fmt.Sprintf("%d resource(s) discovered", len(nodes)),
+		}
 	}
 	return newList(items, "Select Resource Type", 0)
+}
+
+func buildResourceList(resources []ResourceItem, resourceType string) list.Model {
+	items := make([]list.Item, len(resources))
+	for i, r := range resources {
+		prefix := "  "
+		if r.Selected {
+			prefix = "✓ "
+		}
+		items[i] = listItem{
+			title: prefix + r.label,
+			desc:  r.Resource.String(),
+		}
+	}
+	return newList(items, fmt.Sprintf("Select Resources (%s)", resourceType), 0)
+}
+
+func buildResourceItems(g *graph.Graph, resourceType string) []ResourceItem {
+	nodes := g.NodesByType(resourceType)
+	items := make([]ResourceItem, len(nodes))
+	for i, n := range nodes {
+		label := n.Resource.Name
+		if label == "" {
+			label = n.Resource.ID
+		}
+		relatedCount := len(n.Edges)
+		if relatedCount > 0 {
+			label = fmt.Sprintf("%s (↔ %d related)", label, relatedCount)
+		}
+		items[i] = ResourceItem{
+			Resource: n.Resource,
+			NodeKey:  n.Key,
+			label:    label,
+		}
+	}
+	return items
 }
 
 func buildConfirmList(question string) list.Model {

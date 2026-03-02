@@ -85,7 +85,7 @@ func runInteractive(cmd *cobra.Command, _ []string) error {
 	tui.SetConfig(cfg)
 	tui.SetSteampipeClient(spClient)
 
-	model := tui.New(schemas)
+	model := tui.New(schemas, string(cfg.LLMProvider))
 	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		return fmt.Errorf("TUI error: %w", err)
