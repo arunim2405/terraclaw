@@ -35,7 +35,7 @@ func (p *ClaudeProvider) GenerateTerraform(ctx context.Context, resources []stea
 		Model:     anthropic.ModelClaudeOpus4_6,
 		MaxTokens: 4096,
 		System: []anthropic.TextBlockParam{
-			{Text: "You are a Terraform expert that generates valid HCL configuration code."},
+			{Text: BuildSystemPrompt()},
 		},
 		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),

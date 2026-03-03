@@ -81,7 +81,7 @@ func (p *AzureOpenAIProvider) generateViaChatCompletions(ctx context.Context, pr
 	resp, err := p.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 		Model: p.deployment,
 		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage("You are a Terraform expert that generates valid HCL configuration code."),
+			openai.SystemMessage(BuildSystemPrompt()),
 			openai.UserMessage(prompt),
 		},
 		MaxCompletionTokens: openai.Int(4096),
@@ -103,7 +103,7 @@ func (p *AzureOpenAIProvider) generateViaChatCompletions(ctx context.Context, pr
 // Required for codex-family models (e.g. gpt-5.3-codex, davinci-002).
 func (p *AzureOpenAIProvider) generateViaCompletions(ctx context.Context, prompt string) (string, error) {
 	// Codex models expect a single string; prepend the system instruction inline.
-	fullPrompt := "You are a Terraform expert that generates valid HCL configuration code.\n\n" + prompt
+	fullPrompt := BuildSystemPrompt() + "\n\n" + prompt
 
 	resp, err := p.client.Completions.New(ctx, openai.CompletionNewParams{
 		Model: openai.CompletionNewParamsModel(p.deployment),
@@ -133,7 +133,7 @@ func (p *AzureOpenAIProvider) generateViaCompletions(ctx context.Context, prompt
 func (p *AzureOpenAIProvider) generateViaResponses(ctx context.Context, prompt string) (string, error) {
 	resp, err := p.client.Responses.New(ctx, responses.ResponseNewParams{
 		Model:        p.deployment,
-		Instructions: openai.String("You are a Terraform expert that generates valid HCL configuration code."),
+		Instructions: openai.String(BuildSystemPrompt()),
 		Input: responses.ResponseNewParamsInputUnion{
 			OfString: openai.String(prompt),
 		},

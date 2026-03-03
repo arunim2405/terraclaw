@@ -35,7 +35,7 @@ func (p *OpenAIProvider) GenerateTerraform(ctx context.Context, resources []stea
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
-				Content: "You are a Terraform expert that generates valid HCL configuration code.",
+				Content: BuildSystemPrompt(),
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,

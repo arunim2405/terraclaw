@@ -292,3 +292,158 @@ Return ONLY the Terraform HCL code. Include terraform import commands as comment
 
 0 imported, 1 failed
 2026/02/27 16:05:45.885573 [tui] step: Importing → Done
+2026/03/02 16:18:15.111954 [debuglog] initialized — writing to terraclaw.log
+2026/03/02 16:18:15.112294 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/03/02 16:18:17.951984 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
+2026/03/02 16:29:06.185359 [debuglog] initialized — writing to terraclaw.log
+2026/03/02 16:29:06.185587 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/03/02 16:29:14.974328 [tui] step: SelectSchema → loading tables (schema="aws")
+2026/03/02 16:29:14.975538 [steampipe] fetching tables for schema=aws
+2026/03/02 16:29:14.992441 [steampipe] fetched 579 table(s) from schema=aws
+2026/03/02 16:29:33.301152 [debuglog] initialized — writing to terraclaw.log
+2026/03/02 16:29:33.301261 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/03/02 17:33:45.749307 [debuglog] initialized — writing to terraclaw.log
+2026/03/02 17:33:45.749454 [startup] terraclaw starting — provider=azure-openai outputDir=.
+2026/03/02 17:33:47.663776 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/02 17:33:52.874347 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/02 17:33:52.874556 [graph] scanning 37 key tables for schema=aws
+2026/03/02 17:33:52.874746 [graph] progress: 0/37 — aws_vpc
+2026/03/02 17:33:56.381432 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/02 17:33:56.381481 [graph] progress: 1/37 — aws_subnet
+2026/03/02 17:33:56.382452 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/02 17:33:56.382496 [graph] progress: 2/37 — aws_security_group
+2026/03/02 17:33:56.383283 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/02 17:33:56.383303 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/02 17:33:56.383539 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/02 17:33:56.383550 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/02 17:33:56.383709 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/02 17:33:56.383721 [graph] progress: 5/37 — aws_route_table
+2026/03/02 17:33:56.383864 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/02 17:33:56.383874 [graph] progress: 6/37 — aws_network_interface
+2026/03/02 17:33:56.384000 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/02 17:33:56.384008 [graph] progress: 7/37 — aws_eip
+2026/03/02 17:33:56.384127 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/02 17:33:56.384136 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/02 17:34:01.749131 [graph] scanned aws_ec2_instance: 68 resource(s), total=73
+2026/03/02 17:34:01.749174 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/02 17:34:02.135815 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=85
+2026/03/02 17:34:02.135893 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/02 17:34:02.136942 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/02 17:34:02.137073 [graph] progress: 11/37 — aws_lambda_function
+2026/03/02 17:34:09.308748 [graph] scanned aws_lambda_function: 62 resource(s), total=147
+2026/03/02 17:34:09.308800 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/02 17:34:11.379055 [graph] scanned aws_ecs_cluster: 4 resource(s), total=151
+2026/03/02 17:34:11.379164 [graph] progress: 13/37 — aws_ecs_service
+2026/03/02 17:34:12.644744 [graph] scanned aws_ecs_service: 1 resource(s), total=152
+2026/03/02 17:34:12.644942 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/02 17:34:14.074678 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=352
+2026/03/02 17:34:14.074748 [graph] progress: 15/37 — aws_iam_role
+2026/03/02 17:34:29.394834 [graph] scanned aws_iam_role: 200 resource(s), total=552
+2026/03/02 17:34:29.395161 [graph] progress: 16/37 — aws_iam_policy
+2026/03/02 17:34:35.892923 [graph] scanned aws_iam_policy: 200 resource(s), total=752
+2026/03/02 17:34:35.895985 [graph] progress: 17/37 — aws_iam_user
+2026/03/02 17:34:38.599980 [graph] scanned aws_iam_user: 35 resource(s), total=787
+2026/03/02 17:34:38.600069 [graph] progress: 18/37 — aws_iam_group
+2026/03/02 17:34:39.718310 [graph] scanned aws_iam_group: 6 resource(s), total=793
+2026/03/02 17:34:39.718362 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/02 17:34:41.570212 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=816
+2026/03/02 17:34:41.572814 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/02 17:34:48.936623 [graph] scanned aws_s3_bucket: 196 resource(s), total=1012
+2026/03/02 17:34:48.936793 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/02 17:34:51.386021 [graph] scanned aws_ebs_volume: 89 resource(s), total=1101
+2026/03/02 17:34:51.386050 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/02 17:34:52.618116 [graph] scanned aws_efs_file_system: 3 resource(s), total=1104
+2026/03/02 17:34:52.618196 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/02 17:34:53.659419 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1104
+2026/03/02 17:34:53.659502 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/02 17:34:53.971910 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1104
+2026/03/02 17:34:53.971983 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/02 17:34:55.881500 [graph] scanned aws_dynamodb_table: 7 resource(s), total=1111
+2026/03/02 17:34:55.881881 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/02 17:34:57.060641 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1111
+2026/03/02 17:34:57.060736 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/02 17:34:59.065268 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1113
+2026/03/02 17:34:59.065347 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/02 17:35:00.045703 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1114
+2026/03/02 17:35:00.045770 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/02 17:35:01.342420 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1114
+2026/03/02 17:35:01.342683 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/02 17:35:02.143719 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1115
+2026/03/02 17:35:02.143990 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/02 17:35:03.155575 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1116
+2026/03/02 17:35:03.155655 [graph] progress: 32/37 — aws_route53_zone
+2026/03/02 17:35:06.506120 [graph] scanned aws_route53_zone: 3 resource(s), total=1119
+2026/03/02 17:35:06.506306 [graph] progress: 33/37 — aws_kms_key
+2026/03/02 17:35:08.023503 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: DescribeKey, https response error StatusCode: 400, RequestID: 13a3ce38-2c72-4fd4-bb46-0c847c28d1a3, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:DescribeKey on resource: arn:aws:kms:eu-central-1:790543352839:key/297334f7-71d0-46fd-a310-d9cf041c8ca8 because no resource-based policy allows the kms:DescribeKey action (HV000)
+2026/03/02 17:35:08.023825 [graph] progress: 34/37 — aws_sns_topic
+2026/03/02 17:35:10.170435 [graph] scanned aws_sns_topic: 5 resource(s), total=1124
+2026/03/02 17:35:10.170509 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/02 17:35:12.328686 [graph] scanned aws_sqs_queue: 19 resource(s), total=1143
+2026/03/02 17:35:12.328731 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/02 17:36:52.260725 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1343
+2026/03/02 17:36:52.261117 [graph] progress: 37/37 — done
+2026/03/02 17:36:52.603904 [graph] detected 1023 relationship(s) across 1343 node(s)
+2026/03/02 17:36:52.603945 [graph] build complete: 1343 nodes, 1023 edges
+2026/03/02 17:36:52.604031 [tui] graph built: 24 type(s), 1343 node(s), 1023 edge(s)
+2026/03/02 17:54:36.569045 [tui] step: BrowseResourceTypes → SelectResources (type="aws_lambda_function")
+2026/03/02 17:54:41.906661 [tui] step: SelectResources → ConfirmGenerate (62 resource(s) selected)
+2026/03/02 17:54:58.168385 [tui] step: BrowseResourceTypes → SelectResources (type="aws_lambda_function")
+2026/03/02 17:55:04.070257 [tui] step: SelectResources → ConfirmGenerate (1 resource(s) selected)
+2026/03/02 17:55:06.028245 [tui] step: ConfirmGenerate → Generating
+2026/03/02 17:55:06.029882 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=1
+2026/03/02 17:55:06.029976 [llm] resolved provider: azure-openai
+2026/03/02 17:55:06.032315 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
+2026/03/02 17:55:06.032369 [llm] calling Azure OpenAI (Azure AI Foundry) API with 1 resource(s)
+2026/03/02 17:55:06.032443 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=1 prompt=You are a Terraform expert. Generate complete, valid Terraform HCL configuration code to import and manage the following existing cloud resources.
+
+For each resource:
+1. Create the appropriate terraform resource block
+2. Include all required arguments
+3. Set values based on the resource properties provided
+4. Add a comment with the terraform import command needed
+
+Resources:
+
+Resource 1:
+  Provider: aws
+  Type: aws_lambda_function
+  Name: sg-infra2code-qa
+  ID: arn:aws:lambda:eu-central-1:790543352839:function:sg-infra2code-qa
+  Region: eu-central-1
+  Properties:
+    tracing_config: {"Mode": "PassThrough"}
+    architectures: ["x86_64"]
+    logging_config: {"LogGroup": "/aws/lambda/sg-infra2code-qa", "LogFormat": "Text", "SystemLogLevel": "", "ApplicationLogLevel": ""}
+    region: eu-central-1
+    sp_ctx: {"steampipe": {"sdk_version": "5.13.1"}, "connection_name": "aws"}
+    _ctx: {"steampipe": {"sdk_version": "5.13.1"}, "connection_name": "aws"}
+    arn: arn:aws:lambda:eu-central-1:790543352839:function:sg-infra2code-qa
+    memory_size: %!s(int64=2048)
+    role: arn:aws:iam::790543352839:role/landfast-dev-lambda-role
+    account_id: 790543352839
+    last_modified: 2026-03-02 11:38:54 +0000 UTC
+    timeout: 900
+    package_type: Image
+    ephemeral_storage: {"Size": 512}
+    vpc_subnet_ids: ["subnet-072669658da496c4a", "subnet-06293819030751560"]
+    sp_connection_name: aws
+    vpc_id: vpc-0119b9388f2104572
+    snap_start: {"ApplyOn": "None", "OptimizationStatus": "Off"}
+    name: sg-infra2code-qa
+    version: $LATEST
+    environment_variables: {"ENVIRONMENT": "qa", "LANDFAST_LOCAL_STORAGE": "/mnt/efs/data"}
+    title: sg-infra2code-qa
+    partition: aws
+    revision_id: f94552c3-dcff-4118-bfb3-086ca5671266
+    file_system_configs: [{"Arn": "arn:aws:elasticfilesystem:eu-central-1:790543352839:access-point/fsap-05c35d996db815732", "LocalMountPath": "/mnt/efs"}]
+    vpc_security_group_ids: ["sg-064cbb231ba1bca24"]
+    akas: ["arn:aws:lambda:eu-central-1:790543352839:function:sg-infra2code-qa"]
+    code_sha_256: 5b1db4e7271c754535123fe688780bac1d8149a4dea90cb66f1ee271b8e28f6f
+    code_size: %!s(int64=0)
+
+
+Return ONLY the Terraform HCL code. Include terraform import commands as comments above each resource block.
+2026/03/02 17:55:11.921044 [azure-openai] responses response received: 1334 chars
+2026/03/02 17:55:11.921144 [llm] Azure OpenAI (Azure AI Foundry) response received: 1334 chars
+2026/03/02 17:55:11.922018 [terraform] config written to main.tf
+2026/03/02 17:55:11.922090 [tui] step: Generating → ViewCode (code length=1334)

@@ -44,7 +44,7 @@ func (p *GeminiProvider) GenerateTerraform(ctx context.Context, resources []stea
 
 	resp, err := client.Models.GenerateContent(ctx, geminiModel, contents, &genai.GenerateContentConfig{
 		SystemInstruction: genai.NewContentFromText(
-			"You are a Terraform expert that generates valid HCL configuration code.",
+			BuildSystemPrompt(),
 			"",
 		),
 	})
