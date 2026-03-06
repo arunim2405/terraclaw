@@ -32,4 +32,8 @@ go.work.sum
 # .vscode/
 terraclaw
 terraclaw.log
-terraclaw.log
+
+# Generated output
+output/
+main.tf
+.DS_Store

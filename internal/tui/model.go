@@ -10,6 +10,7 @@ import (
 
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/graph"
+	"github.com/arunim2405/terraclaw/internal/llm"
 )
 
 // Step tracks which stage of the wizard the user is on.
@@ -51,14 +52,6 @@ func (r ResourceItem) Title() string       { return r.label }
 func (r ResourceItem) Description() string { return r.Resource.String() }
 func (r ResourceItem) FilterValue() string { return r.label }
 
-// providerDisplayName maps a config provider constant to a human-readable name.
-var providerDisplayName = map[string]string{
-	"openai":       "ChatGPT (OpenAI)",
-	"claude":       "Claude (Anthropic)",
-	"gemini":       "Gemini (Google)",
-	"azure-openai": "Azure OpenAI (Azure AI Foundry)",
-}
-
 // Model is the top-level BubbleTea model for terraclaw.
 type Model struct {
 	// Current wizard step.
@@ -75,9 +68,9 @@ type Model struct {
 	schemas []string
 
 	// User selections.
-	selectedLLMProvider string
-	selectedSchema      string
-	selectedScanMode    string // "key" or "all"
+
+	selectedSchema   string
+	selectedScanMode string // "key" or "all"
 
 	// Resource graph.
 	resourceGraph *graph.Graph
@@ -88,8 +81,9 @@ type Model struct {
 	resources         []ResourceItem // resources for current type
 	selectedResources []ResourceItem // user-toggled resources across all types
 
-	// Generated Terraform code.
-	generatedCode string
+	// Generated Terraform files.
+	generatedFiles  []llm.GeneratedFile
+	selectedFileIdx int // which file is currently being viewed
 
 	// Import results.
 	importResults string
@@ -112,29 +106,22 @@ type Model struct {
 
 // asyncResult carries the result of an async operation.
 type asyncResult struct {
-	code    string
+	files   []llm.GeneratedFile
 	err     error
 	imports string
 }
 
 // New creates the initial BubbleTea model.
-// The LLM provider is read from config (LLM_PROVIDER); the TUI no longer asks
-// the user to pick one.
-func New(schemas []string, llmProvider string) Model {
-	name := providerDisplayName[llmProvider]
-	if name == "" {
-		name = llmProvider
-	}
-
+// Code generation is handled by the OpenCode coding agent.
+func New(schemas []string) Model {
 	l := buildSchemaList(schemas)
 
 	return Model{
-		step:                StepSelectSchema,
-		list:                l,
-		schemas:             schemas,
-		selectedLLMProvider: name,
-		width:               80,
-		height:              24,
+		step:    StepSelectSchema,
+		list:    l,
+		schemas: schemas,
+		width:   80,
+		height:  24,
 	}
 }
 
@@ -252,6 +239,23 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+	case "tab":
+		if m.step == StepViewCode && len(m.generatedFiles) > 1 {
+			m.selectedFileIdx = (m.selectedFileIdx + 1) % len(m.generatedFiles)
+			m.codeScrollOffset = 0
+			return m, nil
+		}
+
+	case "shift+tab":
+		if m.step == StepViewCode && len(m.generatedFiles) > 1 {
+			m.selectedFileIdx--
+			if m.selectedFileIdx < 0 {
+				m.selectedFileIdx = len(m.generatedFiles) - 1
+			}
+			m.codeScrollOffset = 0
+			return m, nil
+		}
+
 	case "esc":
 		return m.goBack()
 	}
@@ -340,7 +344,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			if item.title == "Yes" {
 				debuglog.Log("[tui] step: ConfirmGenerate → Generating")
 				m.step = StepGenerating
-				return m, tea.Batch(tickCmd(), generateCodeCmd(m.selectedLLMProvider, m.selectedResources))
+				return m, tea.Batch(tickCmd(), generateCodeCmd(m.selectedResources))
 			}
 			debuglog.Log("[tui] step: ConfirmGenerate → Quit (user declined)")
 			return m, tea.Quit
@@ -356,7 +360,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			if item.title == "Yes" {
 				debuglog.Log("[tui] step: ConfirmImport → Importing")
 				m.step = StepImporting
-				return m, tea.Batch(tickCmd(), runImportCmd(m.selectedResources, m.generatedCode))
+				return m, tea.Batch(tickCmd(), runImportCmd(m.selectedResources, ""))
 			}
 			debuglog.Log("[tui] step: ConfirmImport → Quit (user declined)")
 			return m, tea.Quit
@@ -489,9 +493,10 @@ func (m Model) handleAsyncResult(res asyncResult) (tea.Model, tea.Cmd) {
 	if res.err != nil {
 		debuglog.Log("[tui] async error: %v", res.err)
 	}
-	if res.code != "" {
-		debuglog.Log("[tui] step: Generating → ViewCode (code length=%d)", len(res.code))
-		m.generatedCode = res.code
+	if len(res.files) > 0 {
+		debuglog.Log("[tui] step: Generating → ViewCode (%d files)", len(res.files))
+		m.generatedFiles = res.files
+		m.selectedFileIdx = 0
 		m.step = StepViewCode
 		m.codeScrollOffset = 0
 	} else if res.imports != "" {
@@ -559,8 +564,27 @@ func (m Model) loadingView(msg string) string {
 }
 
 func (m Model) codeView() string {
-	lines := strings.Split(m.generatedCode, "\n")
-	visible := m.height - 8
+	if len(m.generatedFiles) == 0 {
+		return fmt.Sprintf("\n%s\n\n%s\n",
+			titleStyle.Render(" Generated Terraform Files "),
+			errorStyle.Render("  No .tf files were generated."),
+		)
+	}
+
+	// File tabs header.
+	var tabs strings.Builder
+	for i, f := range m.generatedFiles {
+		if i == m.selectedFileIdx {
+			tabs.WriteString(fmt.Sprintf(" [%s] ", f.Name))
+		} else {
+			tabs.WriteString(fmt.Sprintf("  %s  ", f.Name))
+		}
+	}
+
+	// Show content of selected file.
+	currentFile := m.generatedFiles[m.selectedFileIdx]
+	lines := strings.Split(currentFile.Content, "\n")
+	visible := m.height - 10
 	if visible < 5 {
 		visible = 5
 	}
@@ -577,11 +601,16 @@ func (m Model) codeView() string {
 	}
 
 	snippet := strings.Join(lines[start:end], "\n")
+
+	fileInfo := fmt.Sprintf("%d file(s) generated • viewing: %s (%d/%d)",
+		len(m.generatedFiles), currentFile.Name, m.selectedFileIdx+1, len(m.generatedFiles))
+
 	return fmt.Sprintf(
-		"\n%s\n\n%s\n\n%s",
-		titleStyle.Render(" Generated Terraform Code "),
+		"\n%s\n  %s\n\n%s\n\n%s",
+		titleStyle.Render(" Generated Terraform Files "),
+		infoStyle.Render(tabs.String()),
 		codeStyle.Width(m.width-6).Render(snippet),
-		infoStyle.Render("  [↑/↓] scroll • [enter] proceed to import • [esc] back • [q] quit"),
+		infoStyle.Render(fmt.Sprintf("  %s\n  [tab/shift+tab] switch file • [↑/↓] scroll • [enter] proceed to import • [esc] back • [q] quit", fileInfo)),
 	)
 }
 

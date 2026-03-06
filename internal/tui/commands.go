@@ -3,7 +3,6 @@ package tui
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,6 +11,7 @@ import (
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
+	"github.com/arunim2405/terraclaw/internal/opencode"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 	tf "github.com/arunim2405/terraclaw/internal/terraform"
 )
@@ -22,11 +22,17 @@ var appConfig *config.Config
 // steampipeClient is the shared Steampipe client used by commands.
 var steampipeClient *steampipe.Client
 
+// opencodeServer is the shared OpenCode server used by commands.
+var opencodeServer *opencode.Server
+
 // SetConfig stores the application config for use by TUI commands.
 func SetConfig(cfg *config.Config) { appConfig = cfg }
 
 // SetSteampipeClient stores the Steampipe client for use by TUI commands.
 func SetSteampipeClient(c *steampipe.Client) { steampipeClient = c }
+
+// SetOpencodeServer stores the OpenCode server for use by TUI commands.
+func SetOpencodeServer(s *opencode.Server) { opencodeServer = s }
 
 // ---------------------------------------------------------------------------
 // Messages
@@ -80,10 +86,7 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 		default: // "key"
 			// Use configured tables if set, else default AWS tables.
 			if appConfig != nil && appConfig.ScanTables != "" && appConfig.ScanTables != "*" {
-				tables = strings.Split(appConfig.ScanTables, ",")
-				for i := range tables {
-					tables[i] = strings.TrimSpace(tables[i])
-				}
+				tables = splitAndTrim(appConfig.ScanTables, ",")
 			} else {
 				tables = graph.DefaultAWSTables
 			}
@@ -93,8 +96,6 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 		g := graph.New()
 		err := g.Build(steampipeClient, schema, tables, func(scanned, total int, table string) {
 			debuglog.Log("[graph] progress: %d/%d — %s", scanned, total, table)
-			// Note: we can't send tea.Msg from inside a callback directly,
-			// but the spinner tick will keep the UI responsive.
 		})
 		if err != nil {
 			return graphBuiltMsg{err: err}
@@ -108,33 +109,19 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 	}
 }
 
-// generateCodeCmd calls the selected LLM to generate Terraform code.
-func generateCodeCmd(providerName string, resources []ResourceItem) tea.Cmd {
+// generateCodeCmd calls OpenCode to generate Terraform files directly.
+func generateCodeCmd(resources []ResourceItem) tea.Cmd {
 	return func() tea.Msg {
-		debuglog.Log("[llm] generateCode called: providerName=%q resources=%d", providerName, len(resources))
+		debuglog.Log("[opencode] generateCode called: resources=%d", len(resources))
+		if opencodeServer == nil {
+			debuglog.Log("[opencode] ERROR: server not initialized")
+			return asyncResultMsg{err: fmt.Errorf("opencode server not initialized")}
+		}
 		if appConfig == nil {
-			debuglog.Log("[llm] ERROR: config not initialized")
 			return asyncResultMsg{err: fmt.Errorf("config not initialized")}
 		}
 
-		// Map provider display name back to config provider.
-		switch {
-		case strings.Contains(providerName, "Azure"):
-			appConfig.LLMProvider = config.ProviderAzureOpenAI
-		case strings.Contains(providerName, "OpenAI"):
-			appConfig.LLMProvider = config.ProviderOpenAI
-		case strings.Contains(providerName, "Anthropic"):
-			appConfig.LLMProvider = config.ProviderClaude
-		case strings.Contains(providerName, "Google"):
-			appConfig.LLMProvider = config.ProviderGemini
-		}
-		debuglog.Log("[llm] resolved provider: %s", appConfig.LLMProvider)
-
-		provider, err := llm.New(appConfig)
-		if err != nil {
-			debuglog.Log("[llm] ERROR creating provider: %v", err)
-			return asyncResultMsg{err: err}
-		}
+		provider := llm.NewOpencodeProvider(opencodeServer)
 
 		raw := make([]steampipe.Resource, 0, len(resources))
 		for _, ri := range resources {
@@ -143,25 +130,15 @@ func generateCodeCmd(providerName string, resources []ResourceItem) tea.Cmd {
 			}
 		}
 
-		debuglog.Log("[llm] calling %s API with %d resource(s)", provider.Name(), len(raw))
-		code, err := provider.GenerateTerraform(context.Background(), raw)
+		debuglog.Log("[opencode] calling OpenCode with %d resource(s), outputDir=%s", len(raw), appConfig.OutputDir)
+		files, err := provider.GenerateTerraform(context.Background(), raw, appConfig.OutputDir)
 		if err != nil {
-			debuglog.Log("[llm] ERROR from %s: %v", provider.Name(), err)
+			debuglog.Log("[opencode] ERROR: %v", err)
 			return asyncResultMsg{err: err}
 		}
-		debuglog.Log("[llm] %s response received: %d chars", provider.Name(), len(code))
+		debuglog.Log("[opencode] generated %d file(s)", len(files))
 
-		// Also write the code to disk.
-		if appConfig != nil {
-			outPath, writeErr := tf.WriteConfig(appConfig.OutputDir, code)
-			if writeErr != nil {
-				debuglog.Log("[terraform] ERROR writing config: %v", writeErr)
-			} else {
-				debuglog.Log("[terraform] config written to %s", outPath)
-			}
-		}
-
-		return asyncResultMsg{code: code}
+		return asyncResultMsg{files: files}
 	}
 }
 
@@ -190,12 +167,57 @@ func runImportCmd(resources []ResourceItem, _ string) tea.Cmd {
 }
 
 // ---------------------------------------------------------------------------
-// Model update additions for loaded data
+// Helpers
 // ---------------------------------------------------------------------------
+
+// splitAndTrim splits a string by sep and trims whitespace from each part.
+func splitAndTrim(s, sep string) []string {
+	parts := make([]string, 0)
+	for _, p := range splitString(s, sep) {
+		trimmed := trimSpace(p)
+		if trimmed != "" {
+			parts = append(parts, trimmed)
+		}
+	}
+	return parts
+}
+
+func splitString(s, sep string) []string {
+	result := make([]string, 0)
+	for {
+		idx := indexOf(s, sep)
+		if idx < 0 {
+			result = append(result, s)
+			break
+		}
+		result = append(result, s[:idx])
+		s = s[idx+len(sep):]
+	}
+	return result
+}
+
+func indexOf(s, sub string) int {
+	for i := 0; i <= len(s)-len(sub); i++ {
+		if s[i:i+len(sub)] == sub {
+			return i
+		}
+	}
+	return -1
+}
+
+func trimSpace(s string) string {
+	start, end := 0, len(s)
+	for start < end && (s[start] == ' ' || s[start] == '\t' || s[start] == '\n' || s[start] == '\r') {
+		start++
+	}
+	for end > start && (s[end-1] == ' ' || s[end-1] == '\t' || s[end-1] == '\n' || s[end-1] == '\r') {
+		end--
+	}
+	return s[start:end]
+}
 
 // updateForMessages extends Model.Update to handle data-load messages.
 func (m Model) updateForMessages(msg tea.Msg) (Model, tea.Cmd, bool) {
-	// No table/resource loading messages needed anymore — the graph handles it.
 	_ = msg
 	return m, nil, false
 }

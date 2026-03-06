@@ -35,9 +35,35 @@ func RunImport(terraformBin, workDir string, resource steampipe.Resource, addres
 	return result
 }
 
-// RunImports executes `terraform import` for each resource in the list.
+// RunInit executes `terraform init` in the working directory.
+// This must be called before running terraform import.
+func RunInit(terraformBin, workDir string) error {
+	cmd := exec.Command(terraformBin, "init") // #nosec G204
+	cmd.Dir = workDir
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("terraform init failed: %w\n%s", err, out.String())
+	}
+	return nil
+}
+
+// RunImports runs `terraform init` first, then executes `terraform import`
+// for each resource in the list.
 func RunImports(terraformBin, workDir string, resources []steampipe.Resource) []ImportResult {
 	results := make([]ImportResult, 0, len(resources))
+
+	// Run terraform init before importing.
+	if err := RunInit(terraformBin, workDir); err != nil {
+		// Return a single error result if init fails.
+		return []ImportResult{{
+			Error: fmt.Errorf("terraform init failed (imports skipped): %w", err),
+		}}
+	}
+
 	for _, r := range resources {
 		addr := GuessResourceAddress(r)
 		results = append(results, RunImport(terraformBin, workDir, r, addr))

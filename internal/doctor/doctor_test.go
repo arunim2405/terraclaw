@@ -29,15 +29,12 @@ func (f fakeClient) Close() error {
 func TestRun_AllChecksPass(t *testing.T) {
 	outDir := t.TempDir()
 	cfg := &config.Config{
-		LLMProvider:       config.ProviderOpenAI,
-		OpenAIAPIKey:      "test-key",
-		TerraformBin:      "terraform",
-		OutputDir:         outDir,
-		SteampipeHost:     "localhost",
-		SteampipePort:     "9193",
-		SteampipeDB:       "steampipe",
-		SteampipeUser:     "steampipe",
-		SteampipePassword: "",
+		TerraformBin:  "terraform",
+		OutputDir:     outDir,
+		SteampipeHost: "localhost",
+		SteampipePort: "9193",
+		SteampipeDB:   "steampipe",
+		SteampipeUser: "steampipe",
 	}
 
 	deps := doctor.Deps{
@@ -66,7 +63,6 @@ func TestRun_FailuresDetected(t *testing.T) {
 	}
 
 	cfg := &config.Config{
-		LLMProvider:  config.ProviderOpenAI,
 		OutputDir:    filePath,
 		TerraformBin: "terraform",
 	}
@@ -91,10 +87,8 @@ func TestRun_FailuresDetected(t *testing.T) {
 
 func TestRun_NoSteampipeSchemasFails(t *testing.T) {
 	cfg := &config.Config{
-		LLMProvider:     config.ProviderClaude,
-		AnthropicAPIKey: "key",
-		TerraformBin:    "terraform",
-		OutputDir:       t.TempDir(),
+		TerraformBin: "terraform",
+		OutputDir:    t.TempDir(),
 	}
 
 	deps := doctor.Deps{
