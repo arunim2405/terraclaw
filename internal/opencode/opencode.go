@@ -59,7 +59,7 @@ func StartServer(ctx context.Context, port int, cwd string) (*Server, error) {
 	s := &Server{
 		cmd:     cmd,
 		baseURL: baseURL,
-		client:  &http.Client{Timeout: 120 * time.Second},
+		client:  &http.Client{Timeout: 600 * time.Second},
 		port:    port,
 	}
 
@@ -80,7 +80,7 @@ func ConnectToExisting(port int) *Server {
 	}
 	return &Server{
 		baseURL: fmt.Sprintf("http://127.0.0.1:%d", port),
-		client:  &http.Client{Timeout: 120 * time.Second},
+		client:  &http.Client{Timeout: 600 * time.Second},
 		port:    port,
 	}
 }
@@ -168,14 +168,48 @@ type MessageInfo struct {
 
 // MessagePart is a part of an assistant message.
 type MessagePart struct {
-	Type string `json:"type"`
-	Text string `json:"text,omitempty"`
+	Type     string          `json:"type"`
+	Text     string          `json:"text,omitempty"`
+	ToolName string          `json:"toolName,omitempty"` // for tool-use parts
+	State    json.RawMessage `json:"state,omitempty"`    // can be object or string
+}
+
+// StateString returns a human-readable state from the raw JSON state field.
+func (p MessagePart) StateString() string {
+	if len(p.State) == 0 {
+		return ""
+	}
+	// Try as a plain string first.
+	var s string
+	if json.Unmarshal(p.State, &s) == nil {
+		return s
+	}
+	// Try as an object with a "status" field.
+	var obj map[string]interface{}
+	if json.Unmarshal(p.State, &obj) == nil {
+		if status, ok := obj["status"].(string); ok {
+			return status
+		}
+	}
+	return string(p.State)
 }
 
 // AssistantMessage is the response from a prompt call.
 type AssistantMessage struct {
 	Info  MessageInfo   `json:"info"`
 	Parts []MessagePart `json:"parts"`
+}
+
+// SessionMessage represents a message entry returned by the list messages API.
+type SessionMessage struct {
+	Info  MessageInfo   `json:"info"`
+	Parts []MessagePart `json:"parts"`
+}
+
+// PromptResult carries the result of an async prompt call.
+type PromptResult struct {
+	Response string
+	Err      error
 }
 
 // ---------------------------------------------------------------------------
@@ -287,4 +321,41 @@ func (s *Server) Prompt(sessionID, prompt string) (string, error) {
 
 	debuglog.Log("[opencode] received response from session %s (%d bytes)", sessionID, len(result))
 	return result, nil
+}
+
+// ListMessages fetches all messages in a session. This is used to poll
+// for progress during code generation.
+func (s *Server) ListMessages(sessionID string) ([]SessionMessage, error) {
+	url := fmt.Sprintf("%s/session/%s/message", s.baseURL, sessionID)
+
+	// Use a short-timeout client for polling — don't tie up the long-timeout client.
+	pollClient := &http.Client{Timeout: 10 * time.Second}
+	resp, err := pollClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("list messages: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("list messages: status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var messages []SessionMessage
+	if err := json.NewDecoder(resp.Body).Decode(&messages); err != nil {
+		return nil, fmt.Errorf("decode messages: %w", err)
+	}
+	return messages, nil
+}
+
+// PromptAsync sends a prompt in a background goroutine and returns
+// a channel that will receive the result when the prompt completes.
+// This allows the caller to poll for progress while waiting.
+func (s *Server) PromptAsync(sessionID, prompt string) <-chan PromptResult {
+	ch := make(chan PromptResult, 1)
+	go func() {
+		response, err := s.Prompt(sessionID, prompt)
+		ch <- PromptResult{Response: response, Err: err}
+	}()
+	return ch
 }

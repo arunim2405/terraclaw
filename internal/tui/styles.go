@@ -36,6 +36,10 @@ var (
 			BorderForeground(lipgloss.Color("#383838")).
 			Padding(1, 2)
 
+	subtleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.AdaptiveColor{Light: "#6C6C6C", Dark: "#999999"}).
+			Italic(true)
+
 	_ = itemStyle
 	_ = selectedItemStyle
 )

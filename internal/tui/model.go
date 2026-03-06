@@ -11,6 +11,7 @@ import (
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
+	"github.com/arunim2405/terraclaw/internal/opencode"
 )
 
 // Step tracks which stage of the wizard the user is on.
@@ -100,6 +101,11 @@ type Model struct {
 	// Scan progress.
 	scanProgress string
 
+	// Agent status during code generation.
+	agentStatus     string
+	activeSessionID string
+	activeResultCh  <-chan opencode.PromptResult
+
 	// Channel to receive async results.
 	resultCh chan asyncResult
 }
@@ -179,6 +185,39 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case graphBuiltMsg:
 		return m.handleGraphBuilt(msg)
+
+	case generatingStartedMsg:
+		// OpenCode session is set up; start polling for progress.
+		m.activeSessionID = msg.sessionID
+		m.activeResultCh = msg.resultCh
+		m.agentStatus = "Agent is starting..."
+		debuglog.Log("[tui] generation started, polling session %s", msg.sessionID)
+		return m, tea.Batch(tickCmd(), pollAgentStatusCmd(msg.sessionID, msg.resultCh))
+
+	case agentStatusMsg:
+		// Update agent status display and continue polling.
+		m.agentStatus = msg.status
+		if m.activeSessionID != "" && m.activeResultCh != nil {
+			return m, pollAgentStatusCmd(m.activeSessionID, m.activeResultCh)
+		}
+		return m, nil
+
+	case generationDoneMsg:
+		// Generation finished — clear polling state.
+		m.activeSessionID = ""
+		m.activeResultCh = nil
+		m.agentStatus = ""
+		if msg.err != nil {
+			m.err = msg.err
+			debuglog.Log("[tui] generation error: %v", msg.err)
+			return m, nil
+		}
+		debuglog.Log("[tui] step: Generating → ViewCode (%d files)", len(msg.files))
+		m.generatedFiles = msg.files
+		m.selectedFileIdx = 0
+		m.step = StepViewCode
+		m.codeScrollOffset = 0
+		return m, nil
 	}
 
 	// Handle data-load messages (tables / resources from Steampipe).
@@ -518,7 +557,7 @@ func (m Model) View() string {
 		return m.scanView()
 
 	case StepGenerating:
-		return m.loadingView("Generating Terraform code...")
+		return m.generatingView()
 
 	case StepImporting:
 		return m.loadingView("Running terraform import...")
@@ -561,6 +600,35 @@ func (m Model) scanView() string {
 func (m Model) loadingView(msg string) string {
 	spinner := spinnerChars[m.spinnerFrame%len(spinnerChars)]
 	return fmt.Sprintf("\n\n  %s %s\n", spinner, infoStyle.Render(msg))
+}
+
+func (m Model) generatingView() string {
+	var sb strings.Builder
+	spinner := spinnerChars[m.spinnerFrame%len(spinnerChars)]
+
+	sb.WriteString("\n")
+	sb.WriteString(titleStyle.Render(" Generating Terraform Code "))
+	sb.WriteString("\n\n")
+	sb.WriteString(fmt.Sprintf("  %s %s\n", spinner, infoStyle.Render("OpenCode is generating Terraform files...")))
+	sb.WriteString("\n")
+
+	if m.agentStatus != "" {
+		// Word wrap the status to fit the terminal width.
+		maxWidth := m.width - 6
+		if maxWidth < 40 {
+			maxWidth = 80
+		}
+		status := m.agentStatus
+		if len(status) > maxWidth {
+			status = status[:maxWidth-3] + "..."
+		}
+		sb.WriteString(fmt.Sprintf("  %s\n", subtleStyle.Render(status)))
+	}
+
+	sb.WriteString("\n")
+	sb.WriteString(subtleStyle.Render("  Press q to quit"))
+	sb.WriteString("\n")
+	return sb.String()
 }
 
 func (m Model) codeView() string {

@@ -1,8 +1,8 @@
 package tui
 
 import (
-	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -54,6 +54,24 @@ type graphBuiltMsg struct {
 
 // asyncResultMsg carries the result of an async code generation or import.
 type asyncResultMsg asyncResult
+
+// generatingStartedMsg is sent when the OpenCode session is set up
+// and the prompt has been sent asynchronously.
+type generatingStartedMsg struct {
+	sessionID string
+	resultCh  <-chan opencode.PromptResult
+}
+
+// agentStatusMsg carries a status update from polling OpenCode messages.
+type agentStatusMsg struct {
+	status string
+}
+
+// generationDoneMsg is sent when the async prompt completes and files are scanned.
+type generationDoneMsg struct {
+	files []llm.GeneratedFile
+	err   error
+}
 
 // ---------------------------------------------------------------------------
 // Commands
@@ -109,19 +127,18 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 	}
 }
 
-// generateCodeCmd calls OpenCode to generate Terraform files directly.
+// generateCodeCmd sets up the OpenCode session and sends the prompt asynchronously.
+// It returns a generatingStartedMsg so the TUI can begin polling for progress.
 func generateCodeCmd(resources []ResourceItem) tea.Cmd {
 	return func() tea.Msg {
 		debuglog.Log("[opencode] generateCode called: resources=%d", len(resources))
 		if opencodeServer == nil {
 			debuglog.Log("[opencode] ERROR: server not initialized")
-			return asyncResultMsg{err: fmt.Errorf("opencode server not initialized")}
+			return generationDoneMsg{err: fmt.Errorf("opencode server not initialized")}
 		}
 		if appConfig == nil {
-			return asyncResultMsg{err: fmt.Errorf("config not initialized")}
+			return generationDoneMsg{err: fmt.Errorf("config not initialized")}
 		}
-
-		provider := llm.NewOpencodeProvider(opencodeServer)
 
 		raw := make([]steampipe.Resource, 0, len(resources))
 		for _, ri := range resources {
@@ -130,16 +147,129 @@ func generateCodeCmd(resources []ResourceItem) tea.Cmd {
 			}
 		}
 
-		debuglog.Log("[opencode] calling OpenCode with %d resource(s), outputDir=%s", len(raw), appConfig.OutputDir)
-		files, err := provider.GenerateTerraform(context.Background(), raw, appConfig.OutputDir)
-		if err != nil {
-			debuglog.Log("[opencode] ERROR: %v", err)
-			return asyncResultMsg{err: err}
-		}
-		debuglog.Log("[opencode] generated %d file(s)", len(files))
+		outputDir := appConfig.OutputDir
+		debuglog.Log("[opencode] setting up session with %d resource(s), outputDir=%s", len(raw), outputDir)
 
-		return asyncResultMsg{files: files}
+		// 1. Create a session.
+		sessionID, err := opencodeServer.CreateSession("terraclaw-terraform-generation")
+		if err != nil {
+			return generationDoneMsg{err: fmt.Errorf("create session: %w", err)}
+		}
+		debuglog.Log("[opencode] session created: %s", sessionID)
+
+		// 2. Inject the system prompt.
+		if err := opencodeServer.InjectSystemPrompt(sessionID, llm.BuildSystemPrompt(outputDir)); err != nil {
+			return generationDoneMsg{err: fmt.Errorf("inject system prompt: %w", err)}
+		}
+
+		// 3. Build the user prompt and send it asynchronously.
+		provider := llm.NewOpencodeProvider(opencodeServer)
+		userPrompt := provider.BuildUserPrompt(raw, outputDir)
+		debuglog.Log("[opencode] sending prompt async (%d bytes)", len(userPrompt))
+
+		resultCh := opencodeServer.PromptAsync(sessionID, userPrompt)
+
+		// Return immediately so the TUI can start polling.
+		return generatingStartedMsg{
+			sessionID: sessionID,
+			resultCh:  resultCh,
+		}
 	}
+}
+
+// pollAgentStatusCmd polls OpenCode for session messages and checks if generation is done.
+func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult) tea.Cmd {
+	return func() tea.Msg {
+		// First check if the prompt has completed.
+		select {
+		case result := <-resultCh:
+			debuglog.Log("[opencode] prompt completed (err=%v)", result.Err)
+			if result.Err != nil {
+				return generationDoneMsg{err: result.Err}
+			}
+			// Prompt finished — scan for generated files.
+			files, err := llm.ListGeneratedFiles(appConfig.OutputDir)
+			if err != nil {
+				return generationDoneMsg{err: fmt.Errorf("list generated files: %w", err)}
+			}
+			if len(files) == 0 {
+				return generationDoneMsg{err: fmt.Errorf("opencode did not create any .tf files")}
+			}
+			debuglog.Log("[opencode] found %d generated file(s)", len(files))
+			return generationDoneMsg{files: files}
+		default:
+			// Not done yet — poll for status.
+		}
+
+		// Poll session messages to get agent status.
+		messages, err := opencodeServer.ListMessages(sessionID)
+		if err != nil {
+			debuglog.Log("[opencode] poll error: %v", err)
+			// Non-fatal — keep polling.
+			time.Sleep(2 * time.Second)
+			return agentStatusMsg{status: "Generating..."}
+		}
+
+		status := extractAgentStatus(messages)
+		time.Sleep(2 * time.Second)
+		return agentStatusMsg{status: status}
+	}
+}
+
+// extractAgentStatus summarizes the latest agent activity from session messages.
+func extractAgentStatus(messages []opencode.SessionMessage) string {
+	if len(messages) == 0 {
+		return "Waiting for OpenCode to start..."
+	}
+
+	// Walk messages in reverse to find the latest assistant message.
+	for i := len(messages) - 1; i >= 0; i-- {
+		msg := messages[i]
+		if msg.Info.Role != "assistant" {
+			continue
+		}
+
+		var statusParts []string
+		var lastToolName string
+		var lastText string
+
+		for _, part := range msg.Parts {
+			switch part.Type {
+			case "tool-invocation", "tool-use":
+				if part.ToolName != "" {
+					lastToolName = part.ToolName
+					state := part.StateString()
+					if state == "" {
+						state = "running"
+					}
+					statusParts = append(statusParts, fmt.Sprintf("🔧 %s (%s)", part.ToolName, state))
+				}
+			case "text":
+				if part.Text != "" {
+					// Grab last ~80 chars of text as a preview.
+					text := strings.TrimSpace(part.Text)
+					if len(text) > 100 {
+						text = text[len(text)-100:]
+					}
+					lastText = text
+				}
+			}
+		}
+
+		if len(statusParts) > 0 {
+			// Show the most recent tool use.
+			latest := statusParts[len(statusParts)-1]
+			return fmt.Sprintf("Agent: %s", latest)
+		}
+		if lastToolName != "" {
+			return fmt.Sprintf("Agent: Using %s", lastToolName)
+		}
+		if lastText != "" {
+			return fmt.Sprintf("Agent: %s", lastText)
+		}
+	}
+
+	return "Agent is thinking..."
 }
 
 // runImportCmd runs terraform import for the selected resources.

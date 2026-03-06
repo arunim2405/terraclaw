@@ -186,6 +186,12 @@ After writing all the .tf files, reply with a brief summary listing the files yo
 `, outputDir)
 }
 
+// BuildUserPrompt constructs the user-facing prompt with resource details.
+// Exported so the TUI can use it for async generation.
+func (p *OpencodeProvider) BuildUserPrompt(resources []steampipe.Resource, outputDir string) string {
+	return buildPrompt(resources, outputDir)
+}
+
 // buildPrompt constructs the user-facing prompt with resource details.
 func buildPrompt(resources []steampipe.Resource, outputDir string) string {
 	var sb strings.Builder
