@@ -180,9 +180,16 @@ Only create files that are needed. If no data sources are required, skip data.tf
 ### Import Support
 - Add a comment above each resource block with the terraform import command
 - Format: # terraform import <resource_type>.<resource_name> <id>
+- ALSO create a file called **import.sh** that contains ALL the terraform import commands as a runnable bash script
+- The import.sh script should:
+  - Start with #!/bin/bash and set -e
+  - Run terraform init first
+  - Then run each terraform import command
+  - Echo progress for each import
+  - The resource addresses MUST exactly match the resource names used in the .tf files
 
 ## After Creating Files
-After writing all the .tf files, reply with a brief summary listing the files you created and what each contains. Code should be formatted with Code formatted with terraform fmt and 
+After writing all the .tf files AND import.sh, reply with a brief summary listing the files you created and what each contains. Code should be formatted with terraform fmt.
 `, outputDir)
 }
 

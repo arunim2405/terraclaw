@@ -12,6 +12,7 @@ import (
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
 	"github.com/arunim2405/terraclaw/internal/opencode"
+	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
 
 // Step tracks which stage of the wizard the user is on.
@@ -88,6 +89,9 @@ type Model struct {
 
 	// Import results.
 	importResults string
+
+	// CLI command equivalent of the current TUI selection.
+	cliCommand string
 
 	// Error message (if any).
 	err error
@@ -376,6 +380,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		}
 		debuglog.Log("[tui] step: SelectResources → ConfirmGenerate (%d resource(s) selected)", len(m.selectedResources))
 		m.step = StepConfirmGenerate
+		m.cliCommand = buildCLICommand(m.selectedResources, m.selectedSchema)
 		m.list = buildConfirmList(fmt.Sprintf("Generate Terraform code for %d selected resource(s)?", len(m.selectedResources)))
 
 	case StepConfirmGenerate:
@@ -579,6 +584,14 @@ func (m Model) listView() string {
 	switch m.step {
 	case StepSelectResources:
 		sb.WriteString(infoStyle.Render("  [space] toggle • [r] expand related • [enter] confirm • [esc] back • [q] quit"))
+	case StepConfirmGenerate:
+		sb.WriteString(infoStyle.Render("  [enter] select • [esc] back • [q] quit"))
+		if m.cliCommand != "" {
+			sb.WriteString("\n\n")
+			sb.WriteString(subtleStyle.Render("  💡 Equivalent CLI command:"))
+			sb.WriteString("\n")
+			sb.WriteString(fmt.Sprintf("  %s", m.cliCommand))
+		}
 	default:
 		sb.WriteString(infoStyle.Render("  [enter] select • [esc] back • [q] quit"))
 	}
@@ -694,6 +707,12 @@ func (m Model) doneView() string {
 		sb.WriteString("\n\n")
 		sb.WriteString(m.importResults)
 	}
+	if m.cliCommand != "" {
+		sb.WriteString("\n\n")
+		sb.WriteString(subtleStyle.Render("  💡 To re-run this generation:"))
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("  %s", m.cliCommand))
+	}
 	sb.WriteString("\n\n")
 	sb.WriteString(infoStyle.Render("  [q] quit"))
 	return sb.String()
@@ -779,4 +798,32 @@ func buildConfirmList(question string) list.Model {
 		listItem{title: "No", desc: "Cancel"},
 	}
 	return newList(items, question, 4)
+}
+
+// buildCLICommand constructs the equivalent `terraclaw generate --resources` command
+// from the selected resources, so users can re-run the generation without the TUI.
+func buildCLICommand(resources []ResourceItem, schema string) string {
+	var arns []string
+	for _, ri := range resources {
+		if r, ok := ri.Resource.(steampipe.Resource); ok {
+			// Prefer the ARN from properties, fall back to ID.
+			arn := ""
+			if v, exists := r.Properties["arn"]; exists && v != "" {
+				arn = v
+			} else if r.ID != "" {
+				arn = r.ID
+			}
+			if arn != "" {
+				arns = append(arns, arn)
+			}
+		}
+	}
+	if len(arns) == 0 {
+		return ""
+	}
+	if schema == "" {
+		schema = "aws"
+	}
+	return fmt.Sprintf("terraclaw generate --resources %s --schema %s",
+		strings.Join(arns, ","), schema)
 }

@@ -281,6 +281,20 @@ func runImportCmd(resources []ResourceItem, _ string) tea.Cmd {
 			return asyncResultMsg{err: fmt.Errorf("config not initialized")}
 		}
 
+		// Prefer import.sh if OpenCode generated it.
+		if tf.ImportScriptExists(appConfig.OutputDir) {
+			debuglog.Log("[terraform] found import.sh, running script")
+			output, err := tf.RunImportScript(appConfig.OutputDir)
+			if err != nil {
+				debuglog.Log("[terraform] import.sh failed: %v", err)
+				return asyncResultMsg{imports: fmt.Sprintf("import.sh output:\n%s\n\nError: %v", output, err)}
+			}
+			debuglog.Log("[terraform] import.sh complete")
+			return asyncResultMsg{imports: fmt.Sprintf("import.sh output:\n%s\n\n✅ All imports completed successfully!", output)}
+		}
+
+		// Fallback: run per-resource imports using GuessResourceAddress.
+		debuglog.Log("[terraform] no import.sh found, falling back to per-resource imports")
 		raw := make([]steampipe.Resource, 0, len(resources))
 		for _, ri := range resources {
 			if r, ok := ri.Resource.(steampipe.Resource); ok {
