@@ -125,58 +125,46 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	}
 	defer ocServer.Stop()
 
-	// Create session and generate.
-	fmt.Println("📝 Generating Terraform code...")
+	// Create session.
+	fmt.Println("📝 Creating OpenCode session...")
 	sessionID, err := ocServer.CreateSession("terraclaw-terraform-generation")
 	if err != nil {
 		return fmt.Errorf("create session: %w", err)
 	}
 
-	// Inject system prompt.
-	if err := ocServer.InjectSystemPrompt(sessionID, llm.BuildSystemPrompt(outputAbs)); err != nil {
-		return fmt.Errorf("inject system prompt: %w", err)
+	// ---------------------------------------------------------------
+	// Stage 1: Blueprint Generation
+	// ---------------------------------------------------------------
+	fmt.Println("Stage 1: Generating Blueprint...")
+
+	// Inject Stage 1 system prompt.
+	if err := ocServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt()); err != nil {
+		return fmt.Errorf("stage 1 (blueprint) failed: inject system prompt: %w", err)
 	}
 
-	// Build and send user prompt.
-	provider := llm.NewOpencodeProvider(ocServer)
-	userPrompt := provider.BuildUserPrompt(resources, outputAbs)
-	debuglog.Log("[generate] sending prompt (%d bytes)", len(userPrompt))
+	// Build and send Stage 1 user prompt.
+	stage1Prompt := llm.BuildStage1UserPrompt(resources)
+	debuglog.Log("[generate] sending stage 1 prompt (%d bytes)", len(stage1Prompt))
 
-	fmt.Println("⏳ Waiting for OpenCode to generate files (this may take a few minutes)...")
+	fmt.Println("⏳ Waiting for blueprint generation (this may take a few minutes)...")
 
-	// Send prompt asynchronously and poll for status.
-	resultCh := ocServer.PromptAsync(sessionID, userPrompt)
+	// Send Stage 1 prompt asynchronously and poll for status.
+	resultCh := ocServer.PromptAsync(sessionID, stage1Prompt)
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
+	var stage1Response string
 	for {
+		done := false
 		select {
 		case result := <-resultCh:
 			if result.Err != nil {
-				return fmt.Errorf("generation failed: %w", result.Err)
+				return fmt.Errorf("stage 1 (blueprint) failed: %w", result.Err)
 			}
-
-			// Scan for generated files.
-			files, err := llm.ListGeneratedFiles(cfg.OutputDir)
-			if err != nil {
-				return fmt.Errorf("list generated files: %w", err)
-			}
-			if len(files) == 0 {
-				return fmt.Errorf("OpenCode did not create any .tf files")
-			}
-
-			fmt.Printf("\n✅ Generated %d file(s) in %s:\n", len(files), cfg.OutputDir)
-			for _, f := range files {
-				fmt.Printf("   📄 %s (%d bytes)\n", f.Name, len(f.Content))
-			}
-
-			// Print the equivalent CLI command for reference.
-			fmt.Printf("\n💡 To re-run this exact generation:\n")
-			fmt.Printf("   terraclaw generate --resources %s --schema %s\n", strings.Join(arns, ","), schema)
-			return nil
+			stage1Response = result.Response
+			done = true
 
 		case <-ticker.C:
-			// Poll for status.
 			messages, err := ocServer.ListMessages(sessionID)
 			if err != nil {
 				continue
@@ -196,5 +184,90 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 				}
 			}
 		}
+		if done {
+			break
+		}
 	}
+
+	// Extract and persist blueprint.
+	blueprint, err := llm.ExtractBlueprint(stage1Response)
+	if err != nil {
+		return fmt.Errorf("stage 1 (blueprint) failed: %w", err)
+	}
+	if err := llm.PersistBlueprint(blueprint, cfg.OutputDir); err != nil {
+		return fmt.Errorf("stage 1 (blueprint) failed: persist blueprint: %w", err)
+	}
+	debuglog.Log("[generate] blueprint persisted to %s/blueprint.yaml", cfg.OutputDir)
+
+	// ---------------------------------------------------------------
+	// Stage 2: Terraform Code Generation
+	// ---------------------------------------------------------------
+	fmt.Println("Stage 2: Generating Terraform Code...")
+
+	// Read blueprint back from disk (source of truth).
+	blueprintFromDisk, err := llm.ReadBlueprint(cfg.OutputDir)
+	if err != nil {
+		return fmt.Errorf("stage 2 (terraform) failed: read blueprint: %w", err)
+	}
+
+	// Build and send Stage 2 prompt in the same session.
+	stage2Prompt := llm.BuildStage2Prompt(blueprintFromDisk, outputAbs)
+	debuglog.Log("[generate] sending stage 2 prompt (%d bytes)", len(stage2Prompt))
+
+	fmt.Println("⏳ Waiting for Terraform code generation (this may take a few minutes)...")
+
+	resultCh = ocServer.PromptAsync(sessionID, stage2Prompt)
+
+	for {
+		done := false
+		select {
+		case result := <-resultCh:
+			if result.Err != nil {
+				return fmt.Errorf("stage 2 (terraform) failed: %w", result.Err)
+			}
+			done = true
+
+		case <-ticker.C:
+			messages, err := ocServer.ListMessages(sessionID)
+			if err != nil {
+				continue
+			}
+			if len(messages) > 0 {
+				latest := messages[len(messages)-1]
+				if latest.Info.Role == "assistant" {
+					for _, part := range latest.Parts {
+						if part.ToolName != "" {
+							state := part.StateString()
+							if state == "" {
+								state = "running"
+							}
+							fmt.Printf("   🔧 %s (%s)\n", part.ToolName, state)
+						}
+					}
+				}
+			}
+		}
+		if done {
+			break
+		}
+	}
+
+	// Scan for generated files recursively.
+	files, err := llm.RecursiveListGeneratedFiles(cfg.OutputDir)
+	if err != nil {
+		return fmt.Errorf("list generated files: %w", err)
+	}
+	if len(files) == 0 {
+		return fmt.Errorf("stage 2 (terraform) failed: no files were generated")
+	}
+
+	fmt.Printf("\n✅ Generated %d file(s) in %s:\n", len(files), cfg.OutputDir)
+	for _, f := range files {
+		fmt.Printf("   📄 %s (%d bytes)\n", f.Name, len(f.Content))
+	}
+
+	// Print the equivalent CLI command for reference.
+	fmt.Printf("\n💡 To re-run this exact generation:\n")
+	fmt.Printf("   terraclaw generate --resources %s --schema %s\n", strings.Join(arns, ","), schema)
+	return nil
 }

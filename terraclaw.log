@@ -1195,3 +1195,164 @@ resource "aws_iam_role" "admin_task_state_change_handler_role_i0khmhd3" {
 0 imported, 1 failed
 2026/03/06 22:25:19.448038 [tui] step: Importing → Done
 2026/03/06 22:25:54.754405 [opencode] stopping server (pid=72491)
+2026/03/17 19:55:37.645672 [debuglog] initialized — writing to terraclaw.log
+2026/03/17 19:55:37.646036 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/17 19:55:37.659637 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/17 19:55:37.659671 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/17 19:55:37.663132 [opencode] process started (pid=1328), waiting for server...
+2026/03/17 19:56:42.926860 [debuglog] initialized — writing to terraclaw.log
+2026/03/17 19:56:42.927163 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/17 19:56:42.935238 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/17 19:56:42.935258 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/17 19:56:42.936572 [opencode] process started (pid=1596), waiting for server...
+2026/03/17 19:57:13.024293 [opencode] stopping server (pid=1596)
+2026/03/17 19:57:49.326331 [debuglog] initialized — writing to terraclaw.log
+2026/03/17 19:57:49.326637 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/17 19:57:49.334207 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/17 19:57:49.334327 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/17 19:57:49.335413 [opencode] process started (pid=2512), waiting for server...
+2026/03/17 19:57:49.644537 [opencode] server ready at http://127.0.0.1:4096
+2026/03/17 19:57:51.756046 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/17 19:57:53.536800 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/17 19:57:53.537087 [graph] scanning 37 key tables for schema=aws
+2026/03/17 19:57:53.537640 [graph] progress: 0/37 — aws_vpc
+2026/03/17 19:57:57.697690 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/17 19:57:57.698032 [graph] progress: 1/37 — aws_subnet
+2026/03/17 19:57:57.699387 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.699418 [graph] progress: 2/37 — aws_security_group
+2026/03/17 19:57:57.699647 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.699671 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/17 19:57:57.699901 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.699920 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/17 19:57:57.700089 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.700098 [graph] progress: 5/37 — aws_route_table
+2026/03/17 19:57:57.700234 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.700245 [graph] progress: 6/37 — aws_network_interface
+2026/03/17 19:57:57.700390 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.700406 [graph] progress: 7/37 — aws_eip
+2026/03/17 19:57:57.700578 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.700585 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/17 19:58:06.564832 [graph] scanned aws_ec2_instance: 74 resource(s), total=79
+2026/03/17 19:58:06.564894 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/17 19:58:07.020164 [graph] scanned aws_ec2_launch_template: 13 resource(s), total=92
+2026/03/17 19:58:07.020241 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/17 19:58:07.021135 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/17 19:58:07.021163 [graph] progress: 11/37 — aws_lambda_function
+2026/03/17 19:58:15.280400 [graph] scanned aws_lambda_function: 69 resource(s), total=161
+2026/03/17 19:58:15.280662 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/17 19:58:17.554134 [graph] scanned aws_ecs_cluster: 4 resource(s), total=165
+2026/03/17 19:58:17.554217 [graph] progress: 13/37 — aws_ecs_service
+2026/03/17 19:58:19.058269 [graph] scanned aws_ecs_service: 1 resource(s), total=166
+2026/03/17 19:58:19.058355 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/17 19:58:20.462432 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=366
+2026/03/17 19:58:20.462700 [graph] progress: 15/37 — aws_iam_role
+2026/03/17 19:58:35.738414 [graph] scanned aws_iam_role: 200 resource(s), total=566
+2026/03/17 19:58:35.738762 [graph] progress: 16/37 — aws_iam_policy
+2026/03/17 19:58:42.377233 [graph] scanned aws_iam_policy: 200 resource(s), total=766
+2026/03/17 19:58:42.377569 [graph] progress: 17/37 — aws_iam_user
+2026/03/17 19:58:44.969923 [graph] scanned aws_iam_user: 37 resource(s), total=803
+2026/03/17 19:58:44.970033 [graph] progress: 18/37 — aws_iam_group
+2026/03/17 19:58:46.082999 [graph] scanned aws_iam_group: 6 resource(s), total=809
+2026/03/17 19:58:46.083096 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/17 19:58:47.903916 [graph] scanned aws_iam_instance_profile: 24 resource(s), total=833
+2026/03/17 19:58:47.904122 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/17 19:58:54.250410 [graph] scanned aws_s3_bucket: 199 resource(s), total=1032
+2026/03/17 19:58:54.250617 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/17 19:58:56.532978 [graph] scanned aws_ebs_volume: 97 resource(s), total=1129
+2026/03/17 19:58:56.533056 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/17 19:58:57.799470 [graph] scanned aws_efs_file_system: 3 resource(s), total=1132
+2026/03/17 19:58:57.799529 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/17 19:58:58.886007 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1132
+2026/03/17 19:58:58.886122 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/17 19:58:59.137927 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1132
+2026/03/17 19:58:59.138016 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/17 19:59:00.733003 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1140
+2026/03/17 19:59:00.733273 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/17 19:59:01.765439 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1140
+2026/03/17 19:59:01.765509 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/17 19:59:03.357764 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1142
+2026/03/17 19:59:03.357832 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/17 19:59:04.383467 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1143
+2026/03/17 19:59:04.383501 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/17 19:59:05.624544 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1143
+2026/03/17 19:59:05.624747 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/17 19:59:06.626870 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1144
+2026/03/17 19:59:06.626940 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/17 19:59:07.419880 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1145
+2026/03/17 19:59:07.419930 [graph] progress: 32/37 — aws_route53_zone
+2026/03/17 19:59:10.299486 [graph] scanned aws_route53_zone: 3 resource(s), total=1148
+2026/03/17 19:59:10.299543 [graph] progress: 33/37 — aws_kms_key
+2026/03/17 19:59:11.781737 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: DescribeKey, https response error StatusCode: 400, RequestID: 479dcc6b-ffd3-498e-85c8-314d966ce9e6, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:DescribeKey on resource: arn:aws:kms:eu-central-1:790543352839:key/6bd59c0f-bb24-4352-b545-c43d3921d574 because no resource-based policy allows the kms:DescribeKey action (HV000)
+2026/03/17 19:59:11.781913 [graph] progress: 34/37 — aws_sns_topic
+2026/03/17 19:59:13.786075 [graph] scanned aws_sns_topic: 5 resource(s), total=1153
+2026/03/17 19:59:13.923352 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/17 19:59:15.994130 [graph] scanned aws_sqs_queue: 20 resource(s), total=1173
+2026/03/17 19:59:15.994195 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/17 20:03:43.665440 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1373
+2026/03/17 20:03:43.666631 [graph] progress: 37/37 — done
+2026/03/17 20:03:44.034092 [graph] detected 1031 relationship(s) across 1373 node(s)
+2026/03/17 20:03:44.034130 [graph] build complete: 1373 nodes, 1031 edges
+2026/03/17 20:03:44.034220 [tui] graph built: 24 type(s), 1373 node(s), 1031 edge(s)
+2026/03/17 20:58:19.527754 [tui] step: BrowseResourceTypes → SelectResources (type="aws_dynamodb_table")
+2026/03/17 20:58:27.125801 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/17 20:58:29.111080 [tui] step: ConfirmGenerate → Generating
+2026/03/17 20:58:29.111358 [opencode] generateCode called: resources=2
+2026/03/17 20:58:29.111392 [opencode] setting up session with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/17 20:58:29.175881 [opencode] created session id=ses_303965619ffeVysEd9zvBu7izM title="terraclaw-terraform-generation"
+2026/03/17 20:58:29.175918 [opencode] session created: ses_303965619ffeVysEd9zvBu7izM
+2026/03/17 20:58:29.281674 [opencode] injected system prompt into session ses_303965619ffeVysEd9zvBu7izM (5511 bytes)
+2026/03/17 20:58:29.281836 [opencode] sending stage 1 prompt async (9529 bytes)
+2026/03/17 20:58:29.281861 [tui] generation started, polling session ses_303965619ffeVysEd9zvBu7izM
+2026/03/17 20:58:29.281906 [opencode] sending prompt to session ses_303965619ffeVysEd9zvBu7izM (9529 bytes)
+2026/03/17 20:59:51.641906 [opencode] received response from session ses_303965619ffeVysEd9zvBu7izM (9179 bytes)
+2026/03/17 20:59:53.614564 [opencode] prompt completed (err=<nil>)
+2026/03/17 20:59:53.614692 [tui] stage 1 complete, transitioning to stage 2
+2026/03/17 20:59:53.616580 [opencode] blueprint persisted to /Users/arunimchaudhary/Desktop/other/terraclaw/output/blueprint.yaml
+2026/03/17 20:59:53.616960 [opencode] stage 2 prompt sent async for session ses_303965619ffeVysEd9zvBu7izM
+2026/03/17 20:59:53.616986 [tui] stage 2 started, polling session ses_303965619ffeVysEd9zvBu7izM
+2026/03/17 20:59:53.621153 [opencode] sending prompt to session ses_303965619ffeVysEd9zvBu7izM (13345 bytes)
+2026/03/17 21:05:44.347720 [opencode] received response from session ses_303965619ffeVysEd9zvBu7izM (862 bytes)
+2026/03/17 21:05:45.966327 [opencode] prompt completed (err=<nil>)
+2026/03/17 21:05:45.966386 [tui] stage 2 complete, scanning files
+2026/03/17 21:05:45.973026 [opencode] found 11 generated file(s)
+2026/03/17 21:05:45.973108 [tui] step: Generating → ViewCode (11 files)
+2026/03/17 21:11:04.895976 [tui] step: ViewCode → ConfirmImport
+2026/03/17 21:11:05.838456 [tui] step: ConfirmImport → Importing
+2026/03/17 21:11:05.838624 [terraform] runImport called for 2 resource(s)
+2026/03/17 21:11:05.838754 [terraform] found import.sh, running script
+2026/03/17 21:11:34.510361 [terraform] import.sh failed: import.sh failed: exit status 1
+[0m[1mInitializing the backend...[0m
+[0m[1mInitializing modules...[0m
+- dynamodb_table_marketplace_resources_qa_v1_beta in modules/dynamodb_table_marketplace_resources_qa_v1_beta
+- dynamodb_table_orchestrator_resources_qa_3 in modules/dynamodb_table_orchestrator_resources_qa_3
+[0m[1mInitializing provider plugins...[0m
+- Finding hashicorp/aws versions matching "~> 5.0"...
+- Installing hashicorp/aws v5.100.0...
+- Installed hashicorp/aws v5.100.0 (signed by HashiCorp)
+Terraform has created a lock file [1m.terraform.lock.hcl[0m to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.[0m
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
+Importing module.dynamodb_table_orchestrator_resources_qa_3.aws_dynamodb_table.this
+[0m[1mmodule.dynamodb_table_orchestrator_resources_qa_3.aws_dynamodb_table.this: Importing from ID "arn:aws:dynamodb:eu-central-1:790543352839:table/orchestrator-resources-qa-3"...[0m
+[0m[1m[32mmodule.dynamodb_table_orchestrator_resources_qa_3.aws_dynamodb_table.this: Import prepared![0m
+[0m[32m  Prepared aws_dynamodb_table for import[0m
+[0m[1mmodule.dynamodb_table_orchestrator_resources_qa_3.aws_dynamodb_table.this: Refreshing state... [id=arn:aws:dynamodb:eu-central-1:790543352839:table/orchestrator-resources-qa-3][0m
+[31m[31m╷[0m[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mreading AWS DynamoDB Table (arn:aws:dynamodb:eu-central-1:790543352839:table/orchestrator-resources-qa-3): describing Continuous Backups: operation error DynamoDB: DescribeContinuousBackups, https response error StatusCode: 400, RequestID: 8RNBV1B2V69O6MR09EN7PCL2JBVV4KQNSO5AEMVJF66Q9ASUAAJG, api error ValidationException: 1 validation error detected: Invalid AWS region in 'arn:aws:dynamodb:eu-central-1:790543352839:table/orchestrator-resources-qa-3'[0m
+[31m│[0m [0m
+[31m│[0m [0m[0m
+[31m╵[0m[0m
+[0m[0m
+2026/03/17 21:11:34.512177 [tui] step: Importing → Done
+2026/03/17 21:12:17.713412 [opencode] stopping server (pid=2512)

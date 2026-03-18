@@ -110,6 +110,9 @@ type Model struct {
 	activeSessionID string
 	activeResultCh  <-chan opencode.PromptResult
 
+	// Pipeline stage tracking (1 = blueprint, 2 = terraform).
+	generationStage int
+
 	// Channel to receive async results.
 	resultCh chan asyncResult
 }
@@ -195,6 +198,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.activeSessionID = msg.sessionID
 		m.activeResultCh = msg.resultCh
 		m.agentStatus = "Agent is starting..."
+		m.generationStage = 1
 		debuglog.Log("[tui] generation started, polling session %s", msg.sessionID)
 		return m, tea.Batch(tickCmd(), pollAgentStatusCmd(msg.sessionID, msg.resultCh))
 
@@ -206,11 +210,45 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case promptDoneMsg:
+		if msg.err != nil {
+			prefix := "stage 1 (blueprint)"
+			if m.generationStage == 2 {
+				prefix = "stage 2 (terraform)"
+			}
+			m.err = fmt.Errorf("%s failed: %w", prefix, msg.err)
+			m.activeSessionID = ""
+			m.activeResultCh = nil
+			m.agentStatus = ""
+			m.generationStage = 0
+			return m, nil
+		}
+		if m.generationStage == 1 {
+			// Stage 1 done — transition to Stage 2.
+			m.agentStatus = "Blueprint generated, starting Terraform generation..."
+			debuglog.Log("[tui] stage 1 complete, transitioning to stage 2")
+			return m, transitionToStage2Cmd(m.activeSessionID, msg.response)
+		}
+		// Stage 2 done — scan files.
+		m.activeSessionID = ""
+		m.activeResultCh = nil
+		m.agentStatus = ""
+		debuglog.Log("[tui] stage 2 complete, scanning files")
+		return m, scanGeneratedFilesCmd()
+
+	case stage2StartedMsg:
+		m.generationStage = 2
+		m.activeResultCh = msg.resultCh
+		m.agentStatus = "Stage 2: Generating Terraform Code..."
+		debuglog.Log("[tui] stage 2 started, polling session %s", m.activeSessionID)
+		return m, pollAgentStatusCmd(m.activeSessionID, msg.resultCh)
+
 	case generationDoneMsg:
 		// Generation finished — clear polling state.
 		m.activeSessionID = ""
 		m.activeResultCh = nil
 		m.agentStatus = ""
+		m.generationStage = 0
 		if msg.err != nil {
 			m.err = msg.err
 			debuglog.Log("[tui] generation error: %v", msg.err)
@@ -622,7 +660,16 @@ func (m Model) generatingView() string {
 	sb.WriteString("\n")
 	sb.WriteString(titleStyle.Render(" Generating Terraform Code "))
 	sb.WriteString("\n\n")
-	sb.WriteString(fmt.Sprintf("  %s %s\n", spinner, infoStyle.Render("OpenCode is generating Terraform files...")))
+	sb.WriteString(fmt.Sprintf("  %s %s\n", spinner, infoStyle.Render(func() string {
+		switch m.generationStage {
+		case 1:
+			return "Stage 1: Generating Blueprint..."
+		case 2:
+			return "Stage 2: Generating Terraform Code..."
+		default:
+			return "OpenCode is generating Terraform files..."
+		}
+	}())))
 	sb.WriteString("\n")
 
 	if m.agentStatus != "" {

@@ -73,6 +73,22 @@ type generationDoneMsg struct {
 	err   error
 }
 
+// promptDoneMsg is sent when an async prompt completes (either stage).
+type promptDoneMsg struct {
+	response string
+	err      error
+}
+
+// stage2StartedMsg is sent when Stage 2 prompt has been dispatched asynchronously.
+type stage2StartedMsg struct {
+	resultCh <-chan opencode.PromptResult
+}
+
+// stageTransitionMsg signals the TUI to update the stage display.
+type stageTransitionMsg struct {
+	stage int // 1 or 2
+}
+
 // ---------------------------------------------------------------------------
 // Commands
 // ---------------------------------------------------------------------------
@@ -157,15 +173,14 @@ func generateCodeCmd(resources []ResourceItem) tea.Cmd {
 		}
 		debuglog.Log("[opencode] session created: %s", sessionID)
 
-		// 2. Inject the system prompt.
-		if err := opencodeServer.InjectSystemPrompt(sessionID, llm.BuildSystemPrompt(outputDir)); err != nil {
+		// 2. Inject the Stage 1 system prompt.
+		if err := opencodeServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt()); err != nil {
 			return generationDoneMsg{err: fmt.Errorf("inject system prompt: %w", err)}
 		}
 
-		// 3. Build the user prompt and send it asynchronously.
-		provider := llm.NewOpencodeProvider(opencodeServer)
-		userPrompt := provider.BuildUserPrompt(raw, outputDir)
-		debuglog.Log("[opencode] sending prompt async (%d bytes)", len(userPrompt))
+		// 3. Build the Stage 1 user prompt and send it asynchronously.
+		userPrompt := llm.BuildStage1UserPrompt(raw)
+		debuglog.Log("[opencode] sending stage 1 prompt async (%d bytes)", len(userPrompt))
 
 		resultCh := opencodeServer.PromptAsync(sessionID, userPrompt)
 
@@ -177,26 +192,14 @@ func generateCodeCmd(resources []ResourceItem) tea.Cmd {
 	}
 }
 
-// pollAgentStatusCmd polls OpenCode for session messages and checks if generation is done.
+// pollAgentStatusCmd polls OpenCode for session messages and checks if the current prompt is done.
 func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult) tea.Cmd {
 	return func() tea.Msg {
 		// First check if the prompt has completed.
 		select {
 		case result := <-resultCh:
 			debuglog.Log("[opencode] prompt completed (err=%v)", result.Err)
-			if result.Err != nil {
-				return generationDoneMsg{err: result.Err}
-			}
-			// Prompt finished — scan for generated files.
-			files, err := llm.ListGeneratedFiles(appConfig.OutputDir)
-			if err != nil {
-				return generationDoneMsg{err: fmt.Errorf("list generated files: %w", err)}
-			}
-			if len(files) == 0 {
-				return generationDoneMsg{err: fmt.Errorf("opencode did not create any .tf files")}
-			}
-			debuglog.Log("[opencode] found %d generated file(s)", len(files))
-			return generationDoneMsg{files: files}
+			return promptDoneMsg{response: result.Response, err: result.Err}
 		default:
 			// Not done yet — poll for status.
 		}
@@ -213,6 +216,47 @@ func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult)
 		status := extractAgentStatus(messages)
 		time.Sleep(2 * time.Second)
 		return agentStatusMsg{status: status}
+	}
+}
+
+// transitionToStage2Cmd extracts the blueprint from Stage 1, persists it,
+// and sends the Stage 2 prompt asynchronously.
+func transitionToStage2Cmd(sessionID string, stage1Response string) tea.Cmd {
+	return func() tea.Msg {
+		blueprint, err := llm.ExtractBlueprint(stage1Response)
+		if err != nil {
+			return generationDoneMsg{err: fmt.Errorf("extract blueprint: %w", err)}
+		}
+		if err := llm.PersistBlueprint(blueprint, appConfig.OutputDir); err != nil {
+			return generationDoneMsg{err: fmt.Errorf("persist blueprint: %w", err)}
+		}
+		debuglog.Log("[opencode] blueprint persisted to %s/blueprint.yaml", appConfig.OutputDir)
+
+		blueprintFromDisk, err := llm.ReadBlueprint(appConfig.OutputDir)
+		if err != nil {
+			return generationDoneMsg{err: fmt.Errorf("read blueprint: %w", err)}
+		}
+
+		// Send Stage 2 prompt async.
+		resultCh := opencodeServer.PromptAsync(sessionID, llm.BuildStage2Prompt(blueprintFromDisk, appConfig.OutputDir))
+		debuglog.Log("[opencode] stage 2 prompt sent async for session %s", sessionID)
+
+		return stage2StartedMsg{resultCh: resultCh}
+	}
+}
+
+// scanGeneratedFilesCmd scans the output directory for generated files.
+func scanGeneratedFilesCmd() tea.Cmd {
+	return func() tea.Msg {
+		files, err := llm.RecursiveListGeneratedFiles(appConfig.OutputDir)
+		if err != nil {
+			return generationDoneMsg{err: fmt.Errorf("list generated files: %w", err)}
+		}
+		if len(files) == 0 {
+			return generationDoneMsg{err: fmt.Errorf("no files were generated")}
+		}
+		debuglog.Log("[opencode] found %d generated file(s)", len(files))
+		return generationDoneMsg{files: files}
 	}
 }
 
@@ -273,6 +317,11 @@ func extractAgentStatus(messages []opencode.SessionMessage) string {
 }
 
 // runImportCmd runs terraform import for the selected resources.
+// With the two-stage pipeline, import.sh is generated at the root of outputDir
+// (not inside module subdirectories), so ImportScriptExists correctly checks
+// filepath.Join(outputDir, "import.sh") regardless of the module directory
+// structure underneath. If import.sh is absent, the fallback uses
+// GuessResourceAddress for per-resource imports.
 func runImportCmd(resources []ResourceItem, _ string) tea.Cmd {
 	return func() tea.Msg {
 		debuglog.Log("[terraform] runImport called for %d resource(s)", len(resources))
@@ -281,7 +330,7 @@ func runImportCmd(resources []ResourceItem, _ string) tea.Cmd {
 			return asyncResultMsg{err: fmt.Errorf("config not initialized")}
 		}
 
-		// Prefer import.sh if OpenCode generated it.
+		// Prefer import.sh if OpenCode generated it at the outputDir root.
 		if tf.ImportScriptExists(appConfig.OutputDir) {
 			debuglog.Log("[terraform] found import.sh, running script")
 			output, err := tf.RunImportScript(appConfig.OutputDir)
