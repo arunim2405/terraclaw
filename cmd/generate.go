@@ -266,6 +266,112 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 		fmt.Printf("   📄 %s (%d bytes)\n", f.Name, len(f.Content))
 	}
 
+	// ---------------------------------------------------------------
+	// Stage 3: Import & Validation
+	// ---------------------------------------------------------------
+	fmt.Println("\n📥 Stage 3: Import & Validation...")
+
+	var finalImportResult *llm.ImportStageResult
+	for iteration := 1; iteration <= llm.MaxRefinementIterations; iteration++ {
+		var stage3Prompt string
+		if iteration == 1 {
+			stage3Prompt = llm.BuildStage3Prompt(outputAbs, iteration, llm.MaxRefinementIterations)
+		} else {
+			stage3Prompt = llm.BuildRefinementPrompt(outputAbs, iteration, llm.MaxRefinementIterations)
+		}
+
+		fmt.Printf("⏳ Iteration %d/%d: Running imports and refining...\n", iteration, llm.MaxRefinementIterations)
+		debuglog.Log("[generate] sending stage 3 prompt (iteration %d, %d bytes)", iteration, len(stage3Prompt))
+
+		resultCh = ocServer.PromptAsync(sessionID, stage3Prompt)
+
+		var stage3Response string
+		stage3Err := false
+		for {
+			done := false
+			select {
+			case result := <-resultCh:
+				if result.Err != nil {
+					fmt.Printf("   ❌ Stage 3 prompt failed (iteration %d): %v\n", iteration, result.Err)
+					stage3Err = true
+					done = true
+				} else {
+					stage3Response = result.Response
+					done = true
+				}
+			case <-ticker.C:
+				messages, err := ocServer.ListMessages(sessionID)
+				if err != nil {
+					continue
+				}
+				if len(messages) > 0 {
+					latest := messages[len(messages)-1]
+					if latest.Info.Role == "assistant" {
+						for _, part := range latest.Parts {
+							if part.ToolName != "" {
+								state := part.StateString()
+								if state == "" {
+									state = "running"
+								}
+								fmt.Printf("   🔧 %s (%s)\n", part.ToolName, state)
+							}
+						}
+					}
+				}
+			}
+			if done {
+				break
+			}
+		}
+
+		if stage3Err {
+			if iteration < llm.MaxRefinementIterations {
+				fmt.Println("   Continuing to next iteration...")
+				continue
+			}
+			break
+		}
+
+		importResult, parseErr := llm.ExtractImportResult(stage3Response)
+		if parseErr != nil {
+			fmt.Printf("   ⚠️  Could not parse import result: %v\n", parseErr)
+			if iteration < llm.MaxRefinementIterations {
+				fmt.Println("   Continuing to next iteration...")
+				continue
+			}
+			break
+		}
+
+		finalImportResult = importResult
+		fmt.Printf("   ✅ Successful: %d, ❌ Failed: %d (status: %s)\n",
+			importResult.Successful, importResult.Failed, importResult.Status)
+
+		if importResult.Status == "success" {
+			fmt.Println("\n🎉 All imports successful! Terraform state file generated.")
+			break
+		}
+
+		if iteration == llm.MaxRefinementIterations {
+			fmt.Printf("\n⚠️  Reached max iterations (%d). Some imports may have failed.\n",
+				llm.MaxRefinementIterations)
+		}
+	}
+
+	// Rescan files since Stage 3 may have modified .tf files.
+	files, err = llm.RecursiveListGeneratedFiles(cfg.OutputDir)
+	if err != nil {
+		debuglog.Log("[generate] warning: rescan after stage 3 failed: %v", err)
+	} else {
+		fmt.Printf("\n📂 Final file listing (%d files in %s):\n", len(files), cfg.OutputDir)
+		for _, f := range files {
+			fmt.Printf("   📄 %s (%d bytes)\n", f.Name, len(f.Content))
+		}
+	}
+
+	if finalImportResult != nil && finalImportResult.Status == "success" {
+		fmt.Println("\n✅ Terraform state file generated successfully!")
+	}
+
 	// Print the equivalent CLI command for reference.
 	fmt.Printf("\n💡 To re-run this exact generation:\n")
 	fmt.Printf("   terraclaw generate --resources %s --schema %s\n", strings.Join(arns, ","), schema)

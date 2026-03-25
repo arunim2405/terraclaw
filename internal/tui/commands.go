@@ -86,7 +86,20 @@ type stage2StartedMsg struct {
 
 // stageTransitionMsg signals the TUI to update the stage display.
 type stageTransitionMsg struct {
-	stage int // 1 or 2
+	stage int // 1, 2, or 3
+}
+
+// stage3StartedMsg is sent when a Stage 3 import prompt has been dispatched asynchronously.
+type stage3StartedMsg struct {
+	resultCh  <-chan opencode.PromptResult
+	iteration int
+}
+
+// importFinishedMsg is sent when Stage 3 import+refinement is complete.
+type importFinishedMsg struct {
+	files   []llm.GeneratedFile
+	results string
+	err     error
 }
 
 // ---------------------------------------------------------------------------
@@ -257,6 +270,45 @@ func scanGeneratedFilesCmd() tea.Cmd {
 		}
 		debuglog.Log("[opencode] found %d generated file(s)", len(files))
 		return generationDoneMsg{files: files}
+	}
+}
+
+// importViaOpencodeCmd sends a Stage 3 import+refinement prompt to the
+// existing OpenCode session. On iteration 1, it sends the initial import
+// prompt; on subsequent iterations it sends a refinement prompt.
+func importViaOpencodeCmd(sessionID string, iteration int) tea.Cmd {
+	return func() tea.Msg {
+		if opencodeServer == nil {
+			return importFinishedMsg{err: fmt.Errorf("opencode server not initialized")}
+		}
+		if appConfig == nil {
+			return importFinishedMsg{err: fmt.Errorf("config not initialized")}
+		}
+
+		var prompt string
+		if iteration == 1 {
+			prompt = llm.BuildStage3Prompt(appConfig.OutputDir, iteration, llm.MaxRefinementIterations)
+		} else {
+			prompt = llm.BuildRefinementPrompt(appConfig.OutputDir, iteration, llm.MaxRefinementIterations)
+		}
+
+		debuglog.Log("[opencode] sending stage 3 prompt (iteration %d, %d bytes)", iteration, len(prompt))
+		resultCh := opencodeServer.PromptAsync(sessionID, prompt)
+
+		return stage3StartedMsg{resultCh: resultCh, iteration: iteration}
+	}
+}
+
+// scanAndFinishImportCmd rescans the output directory for generated files
+// (which may have been modified during Stage 3 refinement) and returns
+// an importFinishedMsg to transition to StepDone.
+func scanAndFinishImportCmd(results string) tea.Cmd {
+	return func() tea.Msg {
+		files, err := llm.RecursiveListGeneratedFiles(appConfig.OutputDir)
+		if err != nil {
+			debuglog.Log("[opencode] warning: rescan after import failed: %v", err)
+		}
+		return importFinishedMsg{files: files, results: results}
 	}
 }
 

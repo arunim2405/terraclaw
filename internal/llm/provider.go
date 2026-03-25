@@ -7,11 +7,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
+
+// MaxRefinementIterations is the maximum number of import+refine cycles in Stage 3.
+const MaxRefinementIterations = 5
 
 // GeneratedFile represents a Terraform file created by OpenCode.
 type GeneratedFile struct {
@@ -609,6 +613,182 @@ func ReadBlueprint(outputDir string) (string, error) {
 	}
 
 	return string(data), nil
+}
+
+// ---------------------------------------------------------------------------
+// Stage 3: Import & Validation
+// ---------------------------------------------------------------------------
+
+// BuildStage3Prompt constructs the initial Stage 3 prompt that asks OpenCode
+// to run terraform import commands, diagnose failures using AWS CLI, fix the
+// Terraform code, and retry. The agent runs in the same session as Stages 1 & 2
+// so it has full context of the generated code.
+func BuildStage3Prompt(outputDir string, iteration int, maxIterations int) string {
+	var sb strings.Builder
+
+	sb.WriteString("You are now in Stage 3: Import & Validation.\n\n")
+	sb.WriteString(fmt.Sprintf("Working directory: %s\n", outputDir))
+	sb.WriteString(fmt.Sprintf("This is iteration %d of %d.\n\n", iteration, maxIterations))
+
+	sb.WriteString(`## Task
+
+Run the terraform import commands to import the existing cloud resources into the terraform state.
+
+### Steps:
+
+1. **Run terraform init** in the working directory
+2. **Run each terraform import command** from import.sh one by one
+3. **Analyze any failures** carefully
+
+### If any import fails:
+
+1. Read the error message carefully — it tells you exactly what's wrong
+2. Use **AWS CLI** to fetch the actual resource configuration. Examples:
+   - ` + "`aws iam get-role --role-name X`" + `
+   - ` + "`aws s3api get-bucket-versioning --bucket X`" + `
+   - ` + "`aws lambda get-function --function-name X`" + `
+   - ` + "`aws ec2 describe-instances --instance-ids X`" + `
+   - ` + "`aws cognito-idp describe-user-pool --user-pool-id X`" + `
+   - ` + "`aws rds describe-db-instances --db-instance-identifier X`" + `
+   - ` + "`aws ec2 describe-vpcs --vpc-ids X`" + `
+   - ` + "`aws ec2 describe-security-groups --group-ids X`" + `
+   - Use whatever AWS CLI command is appropriate for the resource type
+3. Compare the actual config with what's in the .tf files
+4. **Fix the terraform code** to match the actual resource configuration exactly
+5. If resource addresses changed, update import.sh too
+6. **Re-run terraform init** if you changed providers or modules
+7. **Re-run the failed import commands**
+
+### Common issues to check:
+
+- Missing or extra attributes in resource blocks
+- Wrong attribute values (check against AWS CLI output)
+- Incorrect resource addresses in import commands
+- Missing provider configuration
+- Wrong resource types
+- Conflicting attributes (e.g., username_attributes vs alias_attributes)
+- Nested blocks that should be separate resources in newer AWS provider versions
+  (e.g., aws_s3_bucket_versioning vs inline versioning block)
+- lifecycle rules, encryption config, or logging that should be in companion resources
+- Tags that don't match (fetch with AWS CLI and correct them)
+
+### CRITICAL:
+- Fix ALL errors you encounter, don't just report them
+- After fixing, always re-run the import to verify the fix works
+- Use AWS CLI to get the ACTUAL current configuration — don't guess
+- The goal is a successful terraform import that produces a valid terraform.tfstate
+
+`)
+
+	sb.WriteString(`### Report Format
+
+After all import attempts (successful or not), you MUST include this marker in your response:
+
+<<IMPORT_RESULT>>
+status: [success|partial|failed]
+successful: [number of successful imports]
+failed: [number of failed imports]
+<<END_IMPORT_RESULT>>
+
+Use "success" when ALL imports succeed and terraform.tfstate is generated.
+Use "partial" when some imports succeed but others fail.
+Use "failed" when ALL imports fail.
+`)
+
+	return sb.String()
+}
+
+// BuildRefinementPrompt constructs a follow-up prompt for subsequent
+// refinement iterations when previous imports had failures.
+func BuildRefinementPrompt(outputDir string, iteration int, maxIterations int) string {
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("Continuing Stage 3: Import & Validation (iteration %d of %d).\n\n", iteration, maxIterations))
+	sb.WriteString(fmt.Sprintf("Working directory: %s\n\n", outputDir))
+
+	sb.WriteString(`The previous import attempt had failures. Please:
+
+1. **Review the errors** from your last attempt
+2. **Use AWS CLI** to fetch the actual resource configuration for any resources that failed to import
+3. **Fix the terraform code** to resolve each error — compare attribute-by-attribute with AWS CLI output
+4. **Re-run terraform init** if you modified providers or module structure
+5. **Re-run ALL terraform import commands** (start fresh to ensure consistency)
+
+### Key Debugging Strategies:
+
+- Run ` + "`terraform plan`" + ` after importing to check for any remaining drift
+- Compare AWS CLI output attribute-by-attribute with your .tf files
+- Check if the AWS provider version requires certain attributes to be in sub-resources rather than inline
+- Verify that import IDs are correct (ARN vs name vs ID — different resource types use different formats)
+- Make sure variable defaults in terraform.tfvars match the actual resource configuration
+- If a resource was already imported successfully, do NOT re-import it (check terraform state first with ` + "`terraform state list`" + `)
+- For resources that were imported but have drift, use ` + "`terraform plan`" + ` output to identify the exact attributes that need fixing
+
+### CRITICAL:
+- Fix ALL errors you encounter, don't just report them
+- After fixing, always re-run the import to verify
+- Use AWS CLI to get the ACTUAL current configuration — don't guess
+- If previous imports succeeded, check terraform state before re-importing
+
+### Report Format
+
+After all import attempts, you MUST include this marker in your response:
+
+<<IMPORT_RESULT>>
+status: [success|partial|failed]
+successful: [number of successful imports]
+failed: [number of failed imports]
+<<END_IMPORT_RESULT>>
+`)
+
+	return sb.String()
+}
+
+// ImportStageResult represents the parsed result from a Stage 3 import response.
+type ImportStageResult struct {
+	Status     string // "success", "partial", "failed"
+	Successful int
+	Failed     int
+}
+
+// ExtractImportResult parses the <<IMPORT_RESULT>> markers from a Stage 3 response.
+// Returns an error if the markers are not found.
+func ExtractImportResult(response string) (*ImportStageResult, error) {
+	const startMarker = "<<IMPORT_RESULT>>"
+	const endMarker = "<<END_IMPORT_RESULT>>"
+
+	startIdx := strings.Index(response, startMarker)
+	if startIdx == -1 {
+		return nil, fmt.Errorf("import result markers not found in response")
+	}
+	endIdx := strings.Index(response, endMarker)
+	if endIdx == -1 {
+		return nil, fmt.Errorf("import result end marker not found in response")
+	}
+
+	content := response[startIdx+len(startMarker) : endIdx]
+
+	result := &ImportStageResult{}
+	for _, line := range strings.Split(content, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "status:") {
+			result.Status = strings.TrimSpace(strings.TrimPrefix(line, "status:"))
+		}
+		if strings.HasPrefix(line, "successful:") {
+			val := strings.TrimSpace(strings.TrimPrefix(line, "successful:"))
+			if n, err := strconv.Atoi(val); err == nil {
+				result.Successful = n
+			}
+		}
+		if strings.HasPrefix(line, "failed:") {
+			val := strings.TrimSpace(strings.TrimPrefix(line, "failed:"))
+			if n, err := strconv.Atoi(val); err == nil {
+				result.Failed = n
+			}
+		}
+	}
+
+	return result, nil
 }
 
 // allowedExtensions is the set of file extensions included by RecursiveListGeneratedFiles.

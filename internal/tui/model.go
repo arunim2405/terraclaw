@@ -110,8 +110,11 @@ type Model struct {
 	activeSessionID string
 	activeResultCh  <-chan opencode.PromptResult
 
-	// Pipeline stage tracking (1 = blueprint, 2 = terraform).
+	// Pipeline stage tracking (1 = blueprint, 2 = terraform, 3 = import).
 	generationStage int
+
+	// Stage 3 refinement iteration (1-based, up to MaxRefinementIterations).
+	refinementIteration int
 
 	// Channel to receive async results.
 	resultCh chan asyncResult
@@ -212,6 +215,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case promptDoneMsg:
 		if msg.err != nil {
+			if m.generationStage == 3 {
+				// Stage 3 error — show result and go to done.
+				m.importResults = fmt.Sprintf("Import failed (iteration %d): %v",
+					m.refinementIteration, msg.err)
+				m.activeSessionID = ""
+				m.activeResultCh = nil
+				m.agentStatus = ""
+				m.generationStage = 0
+				m.step = StepDone
+				return m, nil
+			}
 			prefix := "stage 1 (blueprint)"
 			if m.generationStage == 2 {
 				prefix = "stage 2 (terraform)"
@@ -229,8 +243,43 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			debuglog.Log("[tui] stage 1 complete, transitioning to stage 2")
 			return m, transitionToStage2Cmd(m.activeSessionID, msg.response)
 		}
-		// Stage 2 done — scan files.
-		m.activeSessionID = ""
+		if m.generationStage == 3 {
+			// Stage 3 iteration done — check import result.
+			importResult, parseErr := llm.ExtractImportResult(msg.response)
+
+			if parseErr == nil && importResult.Status == "success" {
+				result := fmt.Sprintf("All %d imports successful after %d iteration(s)!",
+					importResult.Successful, m.refinementIteration)
+				debuglog.Log("[tui] stage 3 complete: %s", result)
+				return m, scanAndFinishImportCmd(result)
+			}
+
+			if m.refinementIteration < llm.MaxRefinementIterations {
+				iterInfo := ""
+				if importResult != nil {
+					iterInfo = fmt.Sprintf(" (successful: %d, failed: %d)",
+						importResult.Successful, importResult.Failed)
+				}
+				debuglog.Log("[tui] stage 3 iteration %d incomplete%s, starting iteration %d",
+					m.refinementIteration, iterInfo, m.refinementIteration+1)
+				m.agentStatus = fmt.Sprintf("Iteration %d had failures%s, starting next iteration...",
+					m.refinementIteration, iterInfo)
+				return m, importViaOpencodeCmd(m.activeSessionID, m.refinementIteration+1)
+			}
+
+			// Max iterations reached.
+			var result string
+			if importResult != nil {
+				result = fmt.Sprintf("Reached max iterations (%d). Successful: %d, Failed: %d",
+					llm.MaxRefinementIterations, importResult.Successful, importResult.Failed)
+			} else {
+				result = fmt.Sprintf("Reached max iterations (%d). Import results could not be parsed.",
+					llm.MaxRefinementIterations)
+			}
+			debuglog.Log("[tui] stage 3 reached max iterations (%d)", llm.MaxRefinementIterations)
+			return m, scanAndFinishImportCmd(result)
+		}
+		// Stage 2 done — scan files but keep session for Stage 3.
 		m.activeResultCh = nil
 		m.agentStatus = ""
 		debuglog.Log("[tui] stage 2 complete, scanning files")
@@ -243,14 +292,43 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		debuglog.Log("[tui] stage 2 started, polling session %s", m.activeSessionID)
 		return m, pollAgentStatusCmd(m.activeSessionID, msg.resultCh)
 
-	case generationDoneMsg:
-		// Generation finished — clear polling state.
+	case stage3StartedMsg:
+		m.generationStage = 3
+		m.refinementIteration = msg.iteration
+		m.activeResultCh = msg.resultCh
+		m.agentStatus = fmt.Sprintf("Stage 3: Import & Validation (iteration %d/%d)...",
+			msg.iteration, llm.MaxRefinementIterations)
+		debuglog.Log("[tui] stage 3 started (iteration %d), polling session %s",
+			msg.iteration, m.activeSessionID)
+		return m, pollAgentStatusCmd(m.activeSessionID, msg.resultCh)
+
+	case importFinishedMsg:
 		m.activeSessionID = ""
+		m.activeResultCh = nil
+		m.agentStatus = ""
+		m.generationStage = 0
+		m.refinementIteration = 0
+		if msg.err != nil {
+			m.err = msg.err
+			m.step = StepDone
+			return m, nil
+		}
+		if len(msg.files) > 0 {
+			m.generatedFiles = msg.files
+		}
+		m.importResults = msg.results
+		m.step = StepDone
+		debuglog.Log("[tui] import finished, transitioning to done")
+		return m, nil
+
+	case generationDoneMsg:
+		// Keep activeSessionID alive — needed for Stage 3 import via OpenCode.
 		m.activeResultCh = nil
 		m.agentStatus = ""
 		m.generationStage = 0
 		if msg.err != nil {
 			m.err = msg.err
+			m.activeSessionID = "" // Clear on error — nothing to import.
 			debuglog.Log("[tui] generation error: %v", msg.err)
 			return m, nil
 		}
@@ -442,6 +520,13 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			if item.title == "Yes" {
 				debuglog.Log("[tui] step: ConfirmImport → Importing")
 				m.step = StepImporting
+				// Use OpenCode for import+refinement if session is still active.
+				if m.activeSessionID != "" && opencodeServer != nil {
+					debuglog.Log("[tui] using OpenCode session %s for Stage 3 import", m.activeSessionID)
+					return m, tea.Batch(tickCmd(), importViaOpencodeCmd(m.activeSessionID, 1))
+				}
+				// Fallback to direct import.sh execution.
+				debuglog.Log("[tui] no active session, falling back to direct import")
 				return m, tea.Batch(tickCmd(), runImportCmd(m.selectedResources, ""))
 			}
 			debuglog.Log("[tui] step: ConfirmImport → Quit (user declined)")
@@ -603,6 +688,9 @@ func (m Model) View() string {
 		return m.generatingView()
 
 	case StepImporting:
+		if m.generationStage == 3 {
+			return m.importingView()
+		}
 		return m.loadingView("Running terraform import...")
 
 	case StepViewCode:
@@ -674,6 +762,36 @@ func (m Model) generatingView() string {
 
 	if m.agentStatus != "" {
 		// Word wrap the status to fit the terminal width.
+		maxWidth := m.width - 6
+		if maxWidth < 40 {
+			maxWidth = 80
+		}
+		status := m.agentStatus
+		if len(status) > maxWidth {
+			status = status[:maxWidth-3] + "..."
+		}
+		sb.WriteString(fmt.Sprintf("  %s\n", subtleStyle.Render(status)))
+	}
+
+	sb.WriteString("\n")
+	sb.WriteString(subtleStyle.Render("  Press q to quit"))
+	sb.WriteString("\n")
+	return sb.String()
+}
+
+func (m Model) importingView() string {
+	var sb strings.Builder
+	spinner := spinnerChars[m.spinnerFrame%len(spinnerChars)]
+
+	sb.WriteString("\n")
+	sb.WriteString(titleStyle.Render(" Importing Terraform Resources "))
+	sb.WriteString("\n\n")
+	sb.WriteString(fmt.Sprintf("  %s %s\n", spinner, infoStyle.Render(
+		fmt.Sprintf("Stage 3: Import & Validation (iteration %d/%d)...",
+			m.refinementIteration, llm.MaxRefinementIterations))))
+	sb.WriteString("\n")
+
+	if m.agentStatus != "" {
 		maxWidth := m.width - 6
 		if maxWidth < 40 {
 			maxWidth = 80
