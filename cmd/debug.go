@@ -50,29 +50,24 @@ func runDebug(cmd *cobra.Command, _ []string) error {
 
 	// --- Configuration summary ---
 	fmt.Println("Configuration:")
-	fmt.Printf("  LLM_PROVIDER      : %s\n", cfg.LLMProvider)
-	fmt.Printf("  OPENAI_API_KEY    : %s\n", maskKey(cfg.OpenAIAPIKey))
-	fmt.Printf("  ANTHROPIC_API_KEY : %s\n", maskKey(cfg.AnthropicAPIKey))
-	fmt.Printf("  GEMINI_API_KEY    : %s\n", maskKey(cfg.GeminiAPIKey))
-	fmt.Printf("  AZURE_API_KEY     : %s\n", maskKey(cfg.AzureOpenAIAPIKey))
-	fmt.Printf("  AZURE_ENDPOINT    : %s\n", cfg.AzureOpenAIEndpoint)
-	fmt.Printf("  AZURE_DEPLOYMENT  : %s\n", cfg.AzureOpenAIDeployment)
+	fmt.Printf("  OPENCODE_PORT     : %d\n", cfg.OpencodePort)
 	fmt.Printf("  STEAMPIPE_HOST    : %s\n", cfg.SteampipeHost)
 	fmt.Printf("  STEAMPIPE_PORT    : %s\n", cfg.SteampipePort)
 	fmt.Printf("  STEAMPIPE_DB      : %s\n", cfg.SteampipeDB)
 	fmt.Printf("  STEAMPIPE_USER    : %s\n", cfg.SteampipeUser)
 	fmt.Printf("  TERRAFORM_BIN     : %s\n", cfg.TerraformBin)
 	fmt.Printf("  OUTPUT_DIR        : %s\n", cfg.OutputDir)
+	fmt.Printf("  SCAN_TABLES       : %s\n", cfg.ScanTables)
 	fmt.Printf("  DEBUG             : %v\n", cfg.Debug)
 	fmt.Printf("  DEBUG_LOG_FILE    : %s\n", cfg.DebugLogFile)
 	fmt.Println()
 
-	// --- LLM provider validation ---
-	fmt.Println("LLM provider validation:")
+	// --- OpenCode validation ---
+	fmt.Println("OpenCode coding agent:")
 	if err := cfg.Validate(); err != nil {
 		fmt.Printf("  [FAIL] %v\n", err)
 	} else {
-		fmt.Printf("  [OK]   provider=%s is correctly configured\n", cfg.LLMProvider)
+		fmt.Printf("  [OK]   configuration valid (LLM provider is configured in OpenCode)\n")
 	}
 	fmt.Println()
 

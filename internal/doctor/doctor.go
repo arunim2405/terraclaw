@@ -65,9 +65,14 @@ func DefaultDeps() Deps {
 func Run(cfg *config.Config, deps Deps) Report {
 	report := Report{}
 
+	// Check that opencode is installed.
+	report.Checks = append(report.Checks, checkOpencode(deps))
+
+	// Check steampipe binary.
 	steampipeBin := checkBinary(deps, "steampipe")
 	report.Checks = append(report.Checks, steampipeBin)
 
+	// Check terraform binary.
 	terraformBin := cfg.TerraformBin
 	if terraformBin == "" {
 		terraformBin = "terraform"
@@ -76,12 +81,30 @@ func Run(cfg *config.Config, deps Deps) Report {
 	terraform.Name = fmt.Sprintf("terraform binary (%s)", terraformBin)
 	report.Checks = append(report.Checks, terraform)
 
+	// Check output directory.
 	report.Checks = append(report.Checks, checkOutputDir(cfg, deps))
-	report.Checks = append(report.Checks, checkProviderConfig(cfg))
 
+	// Check steampipe connection.
 	report.Checks = append(report.Checks, checkSteampipeConnection(cfg, deps))
 
 	return report
+}
+
+func checkOpencode(deps Deps) CheckResult {
+	path, err := deps.LookPath("opencode")
+	if err != nil {
+		return CheckResult{
+			Name:    "opencode (coding agent)",
+			OK:      false,
+			Details: err.Error(),
+			Fix:     "Install OpenCode: brew install anomalyco/tap/opencode (or npm i -g opencode-ai)",
+		}
+	}
+	return CheckResult{
+		Name:    "opencode (coding agent)",
+		OK:      true,
+		Details: path,
+	}
 }
 
 func checkBinary(deps Deps, bin string) CheckResult {
@@ -128,23 +151,6 @@ func checkOutputDir(cfg *config.Config, deps Deps) CheckResult {
 		Name:    "output directory",
 		OK:      true,
 		Details: filepath.Clean(cfg.OutputDir),
-	}
-}
-
-func checkProviderConfig(cfg *config.Config) CheckResult {
-	if err := cfg.Validate(); err != nil {
-		return CheckResult{
-			Name:    "LLM provider configuration",
-			OK:      false,
-			Details: err.Error(),
-			Fix:     "Set LLM_PROVIDER and the matching API key (OPENAI_API_KEY, ANTHROPIC_API_KEY, or GEMINI_API_KEY).",
-		}
-	}
-
-	return CheckResult{
-		Name:    "LLM provider configuration",
-		OK:      true,
-		Details: fmt.Sprintf("provider=%s", cfg.LLMProvider),
 	}
 }
 

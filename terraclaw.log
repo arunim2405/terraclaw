@@ -1,294 +1,1358 @@
-2026/02/27 15:17:30.466121 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:17:30.466229 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:17:33.669344 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:17:34.930498 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:17:34.930802 [steampipe] fetching tables for schema=aws
-2026/02/27 15:17:34.953549 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:17:40.763699 [tui] step: SelectTable → loading resources (table="aws_api_gatewayv2_api")
-2026/02/27 15:17:40.763872 [steampipe] fetching resources for schema=aws table=aws_api_gatewayv2_api
-2026/02/27 15:17:41.662724 [steampipe] fetched 0 resource(s) from aws.aws_api_gatewayv2_api
-2026/02/27 15:17:59.115929 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:17:59.116095 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:18:00.475568 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:18:02.906779 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:18:05.577093 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:18:05.577368 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:18:05.577407 [llm] resolved provider: azure-openai
-2026/02/27 15:18:05.577544 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:18:05.577559 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:18:05.577572 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
-2026/02/27 15:18:05.577652 [azure-openai] API error: this model is not supported MaxTokens, please use MaxCompletionTokens
-2026/02/27 15:18:05.577705 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: this model is not supported MaxTokens, please use MaxCompletionTokens
-2026/02/27 15:18:05.577745 [tui] async error: azure openai completion: this model is not supported MaxTokens, please use MaxCompletionTokens
-2026/02/27 15:18:59.606976 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:18:59.607056 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:19:01.103407 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:19:02.101804 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:19:02.101980 [steampipe] fetching tables for schema=aws
-2026/02/27 15:19:02.115623 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:19:28.508594 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:19:28.508998 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:19:28.720117 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:19:30.529020 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:19:31.324404 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:19:31.324732 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:19:31.324788 [llm] resolved provider: azure-openai
-2026/02/27 15:19:31.324954 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:19:31.324970 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:19:31.324985 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
-2026/02/27 15:19:31.325110 [azure-openai] API error: this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0
-2026/02/27 15:19:31.325130 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0
-2026/02/27 15:19:31.325160 [tui] async error: azure openai completion: this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0
-2026/02/27 15:20:15.808992 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:20:15.809139 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:20:17.670789 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:20:18.854205 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:20:18.855264 [steampipe] fetching tables for schema=aws
-2026/02/27 15:20:18.876416 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:20:31.199070 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:20:31.199810 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:20:31.422552 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:20:32.205321 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:20:32.974260 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:20:32.974557 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:20:32.974605 [llm] resolved provider: azure-openai
-2026/02/27 15:20:32.974691 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:20:32.974708 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:20:32.974723 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
-2026/02/27 15:20:33.928800 [azure-openai] API error: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
-2026/02/27 15:20:33.928996 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
-2026/02/27 15:20:33.929059 [tui] async error: azure openai completion: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
-2026/02/27 15:21:59.192349 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:21:59.192502 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:22:00.826201 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:22:02.079325 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:22:02.079724 [steampipe] fetching tables for schema=aws
-2026/02/27 15:22:02.104312 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:22:13.543038 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:22:13.544452 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:22:13.774123 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:22:14.334725 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:22:14.979608 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:22:14.979915 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:22:14.979972 [llm] resolved provider: azure-openai
-2026/02/27 15:22:14.980083 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:22:14.980100 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:22:14.980113 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
-2026/02/27 15:22:15.937583 [azure-openai] API error: error, status code: 404, status: 404 Not Found, message: Resource not found
-2026/02/27 15:22:15.938242 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: error, status code: 404, status: 404 Not Found, message: Resource not found
-2026/02/27 15:22:15.938456 [tui] async error: azure openai completion: error, status code: 404, status: 404 Not Found, message: Resource not found
-2026/02/27 15:28:04.018628 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:28:04.018723 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:28:06.638809 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:28:07.649877 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:28:07.651779 [steampipe] fetching tables for schema=aws
-2026/02/27 15:28:07.672224 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:28:18.914202 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:28:18.914436 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:28:20.491026 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:28:21.012636 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:28:21.751945 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:28:21.752278 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:28:21.752325 [llm] resolved provider: azure-openai
-2026/02/27 15:28:21.752396 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:28:21.752412 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:28:21.752426 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
-2026/02/27 15:28:22.666862 [azure-openai] API error: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
-2026/02/27 15:28:22.666965 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
-2026/02/27 15:28:22.667030 [tui] async error: azure openai completion: error, status code: 404, status: 404 Not Found, message: The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.
-2026/02/27 15:40:21.901061 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:40:21.901250 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:40:25.780604 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:40:26.755008 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:40:26.755290 [steampipe] fetching tables for schema=aws
-2026/02/27 15:40:26.774138 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:40:38.505557 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:40:38.507006 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:40:40.153329 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:40:40.872426 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:40:41.622843 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:40:41.623120 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:40:41.623175 [llm] resolved provider: azure-openai
-2026/02/27 15:40:41.623355 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:40:41.623383 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:40:41.623407 [azure-openai] calling API deployment=gpt-5.3-codex resources=0 promptLen=489
-2026/02/27 15:40:42.512851 [azure-openai] API error: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/chat/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The chatCompletion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
-2026/02/27 15:40:42.512984 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completion: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/chat/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The chatCompletion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
-2026/02/27 15:40:42.513033 [tui] async error: azure openai completion: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/chat/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The chatCompletion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
-2026/02/27 15:45:57.211003 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:45:57.211382 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:45:59.695053 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:46:01.980148 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:46:01.980498 [steampipe] fetching tables for schema=aws
-2026/02/27 15:46:02.001436 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:46:14.374561 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:46:14.376023 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:46:16.008173 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:46:16.530110 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:46:19.074640 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:46:19.074926 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:46:19.074972 [llm] resolved provider: azure-openai
-2026/02/27 15:46:19.075798 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:46:19.075888 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:46:19.075928 [azure-openai] calling API deployment=gpt-5.3-codex modelType=completions resources=0 promptLen=489
-2026/02/27 15:46:19.962130 [azure-openai] completions API error: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The completion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
-2026/02/27 15:46:19.962336 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai completions: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The completion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
-2026/02/27 15:46:19.962407 [tui] async error: azure openai completions: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/completions?api-version=2024-12-01-preview": 400 Bad Request {"code":"OperationNotSupported","message":"The completion operation does not work with the specified model, gpt-5.3-codex. Please choose different model and try again. You can learn more about which models can be used with each operation here: https://go.microsoft.com/fwlink/?linkid=2197993."}
-2026/02/27 15:55:40.772621 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:55:40.772728 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:55:42.460191 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:55:53.501431 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:55:54.406718 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:55:54.407000 [steampipe] fetching tables for schema=aws
-2026/02/27 15:55:54.428814 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:56:06.609303 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:56:06.609644 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:56:09.317356 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:56:10.340423 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:56:13.683903 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:56:13.684281 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:56:13.684329 [llm] resolved provider: azure-openai
-2026/02/27 15:56:13.684718 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:56:13.684743 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:56:13.684760 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=0 promptLen=489
-2026/02/27 15:56:14.631161 [azure-openai] responses API error: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/responses?api-version=2024-12-01-preview": 400 Bad Request {"code":"BadRequest","message":"Azure OpenAI Responses API is enabled only for api-version 2025-03-01-preview and later"}
-2026/02/27 15:56:14.631371 [llm] ERROR from Azure OpenAI (Azure AI Foundry): azure openai responses: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/responses?api-version=2024-12-01-preview": 400 Bad Request {"code":"BadRequest","message":"Azure OpenAI Responses API is enabled only for api-version 2025-03-01-preview and later"}
-2026/02/27 15:56:14.631455 [tui] async error: azure openai responses: POST "https://sg-qa-ai-sweden.openai.azure.com/openai/responses?api-version=2024-12-01-preview": 400 Bad Request {"code":"BadRequest","message":"Azure OpenAI Responses API is enabled only for api-version 2025-03-01-preview and later"}
-2026/02/27 15:57:13.198314 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 15:57:13.198549 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 15:57:15.552905 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 15:57:16.486133 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 15:57:16.487192 [steampipe] fetching tables for schema=aws
-2026/02/27 15:57:16.507226 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 15:57:35.371586 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 15:57:35.373035 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 15:57:35.596694 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 15:57:36.410394 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 15:57:37.847100 [tui] step: ConfirmGenerate → Generating
-2026/02/27 15:57:37.847338 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 15:57:37.847378 [llm] resolved provider: azure-openai
-2026/02/27 15:57:37.847522 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 15:57:37.847543 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 15:57:37.847608 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=0 promptLen=489
-2026/02/27 15:57:41.049389 [azure-openai] responses response received: 151 chars
-2026/02/27 15:57:41.049538 [llm] Azure OpenAI (Azure AI Foundry) response received: 151 chars
-2026/02/27 15:57:41.050626 [terraform] config written to main.tf
-2026/02/27 15:57:41.050704 [tui] step: Generating → ViewCode (code length=151)
-2026/02/27 16:00:40.781128 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 16:00:40.781357 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 16:00:46.312232 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 16:00:49.113724 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 16:00:49.114582 [steampipe] fetching tables for schema=aws
-2026/02/27 16:00:49.130846 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 16:01:01.312229 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 16:01:01.313513 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 16:01:01.616527 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 16:01:02.750193 [tui] step: SelectResources → ConfirmGenerate (0 resource(s) selected)
-2026/02/27 16:01:03.933824 [tui] step: ConfirmGenerate → Generating
-2026/02/27 16:01:03.934141 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=0
-2026/02/27 16:01:03.934189 [llm] resolved provider: azure-openai
-2026/02/27 16:01:03.934360 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 16:01:03.934381 [llm] calling Azure OpenAI (Azure AI Foundry) API with 0 resource(s)
-2026/02/27 16:01:03.934395 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=0 prompt=You are a Terraform expert. Generate complete, valid Terraform HCL configuration code to import and manage the following existing cloud resources.
+2026/03/05 20:23:50.709656 [debuglog] initialized — writing to terraclaw.log
+2026/03/05 20:23:50.709777 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/05 20:23:50.722960 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/05 20:23:50.722993 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 20:23:50.724998 [opencode] process started (pid=87626), waiting for server...
+2026/03/05 20:23:50.773505 [opencode] server ready at http://127.0.0.1:4096
+2026/03/05 20:23:53.354412 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/05 20:23:54.149980 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/05 20:23:54.150351 [graph] scanning 37 key tables for schema=aws
+2026/03/05 20:23:54.150544 [graph] progress: 0/37 — aws_vpc
+2026/03/05 20:23:57.530521 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/05 20:23:57.530854 [graph] progress: 1/37 — aws_subnet
+2026/03/05 20:23:57.531965 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/05 20:23:57.531994 [graph] progress: 2/37 — aws_security_group
+2026/03/05 20:23:57.532256 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/05 20:23:57.532267 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/05 20:23:57.532459 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/05 20:23:57.532468 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/05 20:23:57.532686 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/05 20:23:57.532693 [graph] progress: 5/37 — aws_route_table
+2026/03/05 20:23:57.532841 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/05 20:23:57.532848 [graph] progress: 6/37 — aws_network_interface
+2026/03/05 20:23:57.533164 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/05 20:23:57.533171 [graph] progress: 7/37 — aws_eip
+2026/03/05 20:23:57.533319 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/05 20:23:57.533325 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/05 20:24:42.374712 [graph] scanned aws_ec2_instance: 71 resource(s), total=76
+2026/03/05 20:24:42.374772 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/05 20:24:42.820275 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=88
+2026/03/05 20:24:42.820430 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/05 20:24:42.821404 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/05 20:24:42.821454 [graph] progress: 11/37 — aws_lambda_function
+2026/03/05 20:24:51.061034 [graph] scanned aws_lambda_function: 67 resource(s), total=155
+2026/03/05 20:24:51.061077 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/05 20:24:53.870403 [graph] scanned aws_ecs_cluster: 4 resource(s), total=159
+2026/03/05 20:24:53.870508 [graph] progress: 13/37 — aws_ecs_service
+2026/03/05 20:24:55.483366 [graph] scanned aws_ecs_service: 1 resource(s), total=160
+2026/03/05 20:24:55.483499 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/05 20:24:57.308877 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=360
+2026/03/05 20:24:57.308944 [graph] progress: 15/37 — aws_iam_role
+2026/03/05 20:25:12.828017 [graph] scanned aws_iam_role: 200 resource(s), total=560
+2026/03/05 20:25:12.828083 [graph] progress: 16/37 — aws_iam_policy
+2026/03/05 20:25:19.434247 [graph] scanned aws_iam_policy: 200 resource(s), total=760
+2026/03/05 20:25:19.434269 [graph] progress: 17/37 — aws_iam_user
+2026/03/05 20:25:22.004398 [graph] scanned aws_iam_user: 37 resource(s), total=797
+2026/03/05 20:25:22.004583 [graph] progress: 18/37 — aws_iam_group
+2026/03/05 20:25:23.464698 [graph] scanned aws_iam_group: 6 resource(s), total=803
+2026/03/05 20:25:23.464767 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/05 20:25:25.292034 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=826
+2026/03/05 20:25:25.292098 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/05 20:25:32.167278 [graph] scanned aws_s3_bucket: 198 resource(s), total=1024
+2026/03/05 20:25:32.167368 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/05 20:25:35.786637 [graph] scanned aws_ebs_volume: 93 resource(s), total=1117
+2026/03/05 20:25:35.786750 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/05 20:25:37.527447 [graph] scanned aws_efs_file_system: 3 resource(s), total=1120
+2026/03/05 20:25:37.527492 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/05 20:25:38.727973 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1120
+2026/03/05 20:25:38.728101 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/05 20:25:39.028343 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1120
+2026/03/05 20:25:39.028691 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/05 20:25:40.883244 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1128
+2026/03/05 20:25:40.883307 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/05 20:25:42.109224 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1128
+2026/03/05 20:25:42.109389 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/05 20:25:43.866269 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1130
+2026/03/05 20:25:43.866382 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/05 20:25:45.553901 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1131
+2026/03/05 20:25:45.554010 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/05 20:25:46.742772 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1131
+2026/03/05 20:25:46.742916 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/05 20:25:47.692278 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1132
+2026/03/05 20:25:47.692407 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/05 20:25:49.159428 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1133
+2026/03/05 20:25:49.159554 [graph] progress: 32/37 — aws_route53_zone
+2026/03/05 20:25:52.276330 [graph] scanned aws_route53_zone: 3 resource(s), total=1136
+2026/03/05 20:25:52.276439 [graph] progress: 33/37 — aws_kms_key
+2026/03/05 20:25:54.187703 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: GetKeyPolicy, https response error StatusCode: 400, RequestID: fda8bcac-c868-4b4e-aea2-c31a0deea946, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:GetKeyPolicy on resource: arn:aws:kms:eu-central-1:790543352839:key/5ff6b101-afb3-4c6d-9039-54471c788344 because no resource-based policy allows the kms:GetKeyPolicy action (HV000)
+2026/03/05 20:25:54.187723 [graph] progress: 34/37 — aws_sns_topic
+2026/03/05 20:25:56.635222 [graph] scanned aws_sns_topic: 5 resource(s), total=1141
+2026/03/05 20:25:56.635353 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/05 20:25:59.661617 [graph] scanned aws_sqs_queue: 19 resource(s), total=1160
+2026/03/05 20:25:59.661779 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/05 20:27:42.059942 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1360
+2026/03/05 20:27:42.060158 [graph] progress: 37/37 — done
+2026/03/05 20:27:42.423940 [graph] detected 1012 relationship(s) across 1360 node(s)
+2026/03/05 20:27:42.423975 [graph] build complete: 1360 nodes, 1012 edges
+2026/03/05 20:27:42.424075 [tui] graph built: 24 type(s), 1360 node(s), 1012 edge(s)
+2026/03/05 20:30:09.367341 [tui] step: BrowseResourceTypes → SelectResources (type="aws_cognito_user_pool")
+2026/03/05 20:30:13.757086 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/05 20:30:16.110335 [tui] step: ConfirmGenerate → Generating
+2026/03/05 20:30:16.110674 [opencode] generateCode called: resources=2
+2026/03/05 20:30:16.110781 [opencode] calling OpenCode with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 20:30:16.110813 [opencode-provider] generating terraform for 2 resource(s) in /Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 20:30:16.130071 [opencode] created session id=ses_3417c7b84ffe9O1uOxjMfutmcz title="terraclaw-terraform-generation"
+2026/03/05 20:30:16.130090 [opencode-provider] session created: ses_3417c7b84ffe9O1uOxjMfutmcz
+2026/03/05 20:30:16.144842 [opencode] injected system prompt into session ses_3417c7b84ffe9O1uOxjMfutmcz (2680 bytes)
+2026/03/05 20:30:16.144911 [opencode-provider] sending resource prompt (5013 bytes)
+2026/03/05 20:30:16.144937 [opencode] sending prompt to session ses_3417c7b84ffe9O1uOxjMfutmcz (5013 bytes)
+2026/03/05 20:31:58.651051 [opencode] received response from session ses_3417c7b84ffe9O1uOxjMfutmcz (2407 bytes)
+2026/03/05 20:31:58.651082 [opencode-provider] received response (2407 bytes)
+2026/03/05 20:31:58.652042 [opencode-provider] found 5 generated file(s)
+2026/03/05 20:31:58.652051 [opencode] generated 5 file(s)
+2026/03/05 20:31:58.652073 [tui] step: Generating → ViewCode (5 files)
+2026/03/05 20:32:38.236303 [tui] step: ViewCode → ConfirmImport
+2026/03/05 20:32:39.033235 [tui] step: ConfirmImport → Importing
+2026/03/05 20:32:39.033335 [terraform] runImport called for 2 resource(s)
+2026/03/05 20:32:39.033353 [terraform] running import with bin=terraform outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 20:32:39.198287 [terraform] import complete: ✗ : terraform init failed (imports skipped): terraform init failed: exit status 1
 
-For each resource:
-1. Create the appropriate terraform resource block
-2. Include all required arguments
-3. Set values based on the resource properties provided
-4. Add a comment with the terraform import command needed
-
-Resources:
-
-
-Return ONLY the Terraform HCL code. Include terraform import commands as comments above each resource block.
-2026/02/27 16:01:06.327774 [azure-openai] responses response received: 173 chars
-2026/02/27 16:01:06.327809 [llm] Azure OpenAI (Azure AI Foundry) response received: 173 chars
-2026/02/27 16:01:06.328222 [terraform] config written to main.tf
-2026/02/27 16:01:06.328247 [tui] step: Generating → ViewCode (code length=173)
-2026/02/27 16:03:14.666647 [debuglog] initialized — writing to terraclaw.log
-2026/02/27 16:03:14.666761 [startup] terraclaw starting — provider=azure-openai outputDir=.
-2026/02/27 16:03:17.818618 [tui] step: SelectProvider → SelectSchema (provider="Azure OpenAI (Azure AI Foundry)")
-2026/02/27 16:03:18.779957 [tui] step: SelectSchema → loading tables (schema="aws")
-2026/02/27 16:03:18.780324 [steampipe] fetching tables for schema=aws
-2026/02/27 16:03:18.802444 [steampipe] fetched 579 table(s) from schema=aws
-2026/02/27 16:03:35.259699 [tui] step: SelectTable → loading resources (table="aws_cognito_user_pool")
-2026/02/27 16:03:35.259990 [steampipe] fetching resources for schema=aws table=aws_cognito_user_pool
-2026/02/27 16:03:37.674512 [steampipe] fetched 2 resource(s) from aws.aws_cognito_user_pool
-2026/02/27 16:03:43.792589 [tui] step: SelectResources → ConfirmGenerate (1 resource(s) selected)
-2026/02/27 16:03:49.256278 [tui] step: ConfirmGenerate → Generating
-2026/02/27 16:03:49.256556 [llm] generateCode called: providerName="Azure OpenAI (Azure AI Foundry)" resources=1
-2026/02/27 16:03:49.256605 [llm] resolved provider: azure-openai
-2026/02/27 16:03:49.256761 [llm] provider instantiated: Azure OpenAI (Azure AI Foundry)
-2026/02/27 16:03:49.256783 [llm] calling Azure OpenAI (Azure AI Foundry) API with 1 resource(s)
-2026/02/27 16:03:49.256923 [azure-openai] calling API deployment=gpt-5.3-codex modelType=responses resources=1 prompt=You are a Terraform expert. Generate complete, valid Terraform HCL configuration code to import and manage the following existing cloud resources.
-
-For each resource:
-1. Create the appropriate terraform resource block
-2. Include all required arguments
-3. Set values based on the resource properties provided
-4. Add a comment with the terraform import command needed
-
-Resources:
-
-Resource 1:
-  Provider: aws
-  Type: aws_cognito_user_pool
-  Name: platform-users-nonprod
-  ID: eu-central-1_C6bwuggLI
-  Region: eu-central-1
-  Properties:
-    sp_ctx: {"steampipe": {"sdk_version": "5.13.1"}, "connection_name": "aws"}
-    _ctx: {"steampipe": {"sdk_version": "5.13.1"}, "connection_name": "aws"}
-    creation_date: 2021-04-27 17:04:38.673 +0000 UTC
-    deletion_protection: INACTIVE
-    username_attributes: ["email"]
-    estimated_number_of_users: %!s(int64=693)
-    sms_authentication_message: Your authentication code is {####}. 
-    auto_verified_attributes: [email]
-    name: platform-users-nonprod
-    tags: {"Resource-Type": "nonprod"}
-    title: platform-users-nonprod
-    last_modified_date: 2026-01-19 11:38:38.747 +0000 UTC
-    mfa_configuration: OPTIONAL
-    region: eu-central-1
-    sp_connection_name: aws
-    id: eu-central-1_C6bwuggLI
-    user_pool_add_ons: {"AdvancedSecurityMode": "AUDIT"}
-    arn: arn:aws:cognito-idp:eu-central-1:790543352839:userpool/eu-central-1_C6bwuggLI
-    account_recovery_setting: {"RecoveryMechanisms": [{"Name": "verified_email", "Priority": 1}, {"Name": "verified_phone_number", "Priority": 2}]}
-    policies: {"PasswordPolicy": {"MinimumLength": 8, "RequireNumbers": true, "RequireSymbols": true, "RequireLowercase": true, "RequireUppercase": true, "TemporaryPasswordValidityDays": 7}}
-    username_configuration: {"CaseSensitive": false}
-    user_attribute_update_settings: {"AttributesRequireVerificationBeforeUpdate": []}
-    partition: aws
-    alias_attributes: []
-    domain: stackguardian-nonprod
-    akas: ["arn:aws:cognito-idp:eu-central-1:790543352839:userpool/eu-central-1_C6bwuggLI"]
-    account_id: 790543352839
-
-
-Return ONLY the Terraform HCL code. Include terraform import commands as comments above each resource block.
-2026/02/27 16:04:02.951549 [azure-openai] responses response received: 1227 chars
-2026/02/27 16:04:02.951626 [llm] Azure OpenAI (Azure AI Foundry) response received: 1227 chars
-2026/02/27 16:04:02.952261 [terraform] config written to main.tf
-2026/02/27 16:04:02.952326 [tui] step: Generating → ViewCode (code length=1227)
-2026/02/27 16:05:44.350699 [tui] step: ViewCode → ConfirmImport
-2026/02/27 16:05:45.666529 [tui] step: ConfirmImport → Importing
-2026/02/27 16:05:45.666716 [terraform] runImport called for 1 resource(s)
-2026/02/27 16:05:45.666778 [terraform] running import with bin=terraform outputDir=.
-2026/02/27 16:05:45.885528 [terraform] import complete: ✗ aws_cognito_user_pool.platform_users_nonprod: terraform import failed: exit status 1
+[0m[1mInitializing the backend...[0m
 [31m[31m╷[0m[0m
-[31m│[0m [0m[1m[31mError: [0m[0m[1mInconsistent dependency lock file[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mUnsupported Terraform Core version[0m
 [31m│[0m [0m
-[31m│[0m [0m[0mThe following dependency selections recorded in the lock file are
-[31m│[0m [0minconsistent with the current configuration:
-[31m│[0m [0m  - provider registry.terraform.io/hashicorp/aws: required by this configuration but no version is selected
+[31m│[0m [0m[0m  on providers.tf line 2, in terraform:
+[31m│[0m [0m   2:   [4mrequired_version = ">= 1.7"[0m[0m
 [31m│[0m [0m
-[31m│[0m [0mTo make the initial dependency selections that will initialize the
-[31m│[0m [0mdependency lock file, run:
-[31m│[0m [0m  terraform init
+[31m│[0m [0mThis configuration does not support Terraform version 1.5.7. To proceed,
+[31m│[0m [0meither choose another supported Terraform version or update this version
+[31m│[0m [0mconstraint. Version constraints are normally set for good reason, so
+[31m│[0m [0mupdating the constraint may lead to other errors or unexpected behavior.
 [31m╵[0m[0m
 [0m[0m
 
 
 0 imported, 1 failed
-2026/02/27 16:05:45.885573 [tui] step: Importing → Done
+2026/03/05 20:32:39.198325 [tui] step: Importing → Done
+2026/03/05 20:32:50.994955 [opencode] stopping server (pid=87626)
+2026/03/05 20:47:47.635895 [debuglog] initialized — writing to terraclaw.log
+2026/03/05 20:47:47.636104 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/05 20:47:47.649024 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/05 20:47:47.649058 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 20:47:47.651202 [opencode] process started (pid=95482), waiting for server...
+2026/03/05 20:47:48.084821 [opencode] server ready at http://127.0.0.1:4096
+2026/03/05 20:48:07.025544 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/05 20:48:08.047434 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/05 20:48:08.047695 [graph] scanning 37 key tables for schema=aws
+2026/03/05 20:48:08.047845 [graph] progress: 0/37 — aws_vpc
+2026/03/05 20:48:09.993887 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/05 20:48:09.993946 [graph] progress: 1/37 — aws_subnet
+2026/03/05 20:48:09.994492 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/05 20:48:09.994509 [graph] progress: 2/37 — aws_security_group
+2026/03/05 20:48:09.994694 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/05 20:48:09.994703 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/05 20:48:09.995050 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/05 20:48:09.995079 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/05 20:48:09.995252 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/05 20:48:09.995262 [graph] progress: 5/37 — aws_route_table
+2026/03/05 20:48:09.995560 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/05 20:48:09.995571 [graph] progress: 6/37 — aws_network_interface
+2026/03/05 20:48:09.995690 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/05 20:48:09.995695 [graph] progress: 7/37 — aws_eip
+2026/03/05 20:48:09.995821 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/05 20:48:09.995827 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/05 20:48:19.751026 [graph] scanned aws_ec2_instance: 71 resource(s), total=76
+2026/03/05 20:48:19.751049 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/05 20:48:20.133477 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=88
+2026/03/05 20:48:20.133610 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/05 20:48:20.134415 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/05 20:48:20.134468 [graph] progress: 11/37 — aws_lambda_function
+2026/03/05 20:48:28.420459 [graph] scanned aws_lambda_function: 67 resource(s), total=155
+2026/03/05 20:48:28.420487 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/05 20:48:32.845771 [graph] scanned aws_ecs_cluster: 4 resource(s), total=159
+2026/03/05 20:48:32.845904 [graph] progress: 13/37 — aws_ecs_service
+2026/03/05 20:48:34.407028 [graph] scanned aws_ecs_service: 1 resource(s), total=160
+2026/03/05 20:48:34.407054 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/05 20:48:50.378492 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=360
+2026/03/05 20:48:50.378551 [graph] progress: 15/37 — aws_iam_role
+2026/03/05 20:49:06.091161 [graph] scanned aws_iam_role: 200 resource(s), total=560
+2026/03/05 20:49:06.091188 [graph] progress: 16/37 — aws_iam_policy
+2026/03/05 20:49:13.024326 [graph] scanned aws_iam_policy: 200 resource(s), total=760
+2026/03/05 20:49:13.024359 [graph] progress: 17/37 — aws_iam_user
+2026/03/05 20:49:16.006505 [graph] scanned aws_iam_user: 37 resource(s), total=797
+2026/03/05 20:49:16.006678 [graph] progress: 18/37 — aws_iam_group
+2026/03/05 20:49:17.106903 [graph] scanned aws_iam_group: 6 resource(s), total=803
+2026/03/05 20:49:17.107077 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/05 20:49:18.920714 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=826
+2026/03/05 20:49:18.920763 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/05 20:49:25.271599 [graph] scanned aws_s3_bucket: 198 resource(s), total=1024
+2026/03/05 20:49:25.271637 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/05 20:49:28.761939 [graph] scanned aws_ebs_volume: 93 resource(s), total=1117
+2026/03/05 20:49:28.761972 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/05 20:49:30.008317 [graph] scanned aws_efs_file_system: 3 resource(s), total=1120
+2026/03/05 20:49:30.008402 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/05 20:49:31.109724 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1120
+2026/03/05 20:49:31.109777 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/05 20:49:31.342664 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1120
+2026/03/05 20:49:31.342780 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/05 20:49:33.104166 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1128
+2026/03/05 20:49:33.104211 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/05 20:49:34.554863 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1128
+2026/03/05 20:49:34.554937 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/05 20:49:36.316019 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1130
+2026/03/05 20:49:36.316080 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/05 20:49:38.379603 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1131
+2026/03/05 20:49:38.379784 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/05 20:49:40.188481 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1131
+2026/03/05 20:49:40.188645 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/05 20:49:41.498058 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1132
+2026/03/05 20:49:41.498246 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/05 20:49:42.500883 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1133
+2026/03/05 20:49:42.501013 [graph] progress: 32/37 — aws_route53_zone
+2026/03/05 20:49:45.347196 [graph] scanned aws_route53_zone: 3 resource(s), total=1136
+2026/03/05 20:49:45.347589 [graph] progress: 33/37 — aws_kms_key
+2026/03/05 20:49:47.155552 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: DescribeKey, https response error StatusCode: 400, RequestID: 06301b2f-9110-4fb7-ab54-6a0653079b50, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:DescribeKey on resource: arn:aws:kms:eu-central-1:790543352839:key/e83d6894-caad-415e-904e-d0395813988b because no resource-based policy allows the kms:DescribeKey action (HV000)
+2026/03/05 20:49:47.155573 [graph] progress: 34/37 — aws_sns_topic
+2026/03/05 20:49:49.566710 [graph] scanned aws_sns_topic: 5 resource(s), total=1141
+2026/03/05 20:49:49.566849 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/05 20:49:52.102727 [graph] scanned aws_sqs_queue: 19 resource(s), total=1160
+2026/03/05 20:49:52.103116 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/05 20:54:36.048387 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1360
+2026/03/05 20:54:36.048621 [graph] progress: 37/37 — done
+2026/03/05 20:54:36.389342 [graph] detected 1012 relationship(s) across 1360 node(s)
+2026/03/05 20:54:36.389377 [graph] build complete: 1360 nodes, 1012 edges
+2026/03/05 20:54:36.389450 [tui] graph built: 24 type(s), 1360 node(s), 1012 edge(s)
+2026/03/05 20:57:34.224983 [tui] step: BrowseResourceTypes → SelectResources (type="aws_cognito_user_pool")
+2026/03/05 20:57:36.930713 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/05 20:57:37.922061 [tui] step: ConfirmGenerate → Generating
+2026/03/05 20:57:37.922292 [opencode] generateCode called: resources=2
+2026/03/05 20:57:37.922342 [opencode] calling OpenCode with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 20:57:37.922357 [opencode-provider] generating terraform for 2 resource(s) in /Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 20:57:37.945539 [opencode] created session id=ses_341636e2fffeIl8F4AZKT5KDQm title="terraclaw-terraform-generation"
+2026/03/05 20:57:37.945610 [opencode-provider] session created: ses_341636e2fffeIl8F4AZKT5KDQm
+2026/03/05 20:57:38.002985 [opencode] injected system prompt into session ses_341636e2fffeIl8F4AZKT5KDQm (2680 bytes)
+2026/03/05 20:57:38.003058 [opencode-provider] sending resource prompt (5013 bytes)
+2026/03/05 20:57:38.003084 [opencode] sending prompt to session ses_341636e2fffeIl8F4AZKT5KDQm (5013 bytes)
+2026/03/05 20:58:48.465970 [opencode] received response from session ses_341636e2fffeIl8F4AZKT5KDQm (2682 bytes)
+2026/03/05 20:58:48.466149 [opencode-provider] received response (2682 bytes)
+2026/03/05 20:58:48.467071 [opencode-provider] found 5 generated file(s)
+2026/03/05 20:58:48.467079 [opencode] generated 5 file(s)
+2026/03/05 20:58:48.467095 [tui] step: Generating → ViewCode (5 files)
+2026/03/05 21:08:03.130673 [tui] step: ViewCode → ConfirmImport
+2026/03/05 21:08:04.135797 [tui] step: ConfirmImport → Importing
+2026/03/05 21:08:04.136050 [terraform] runImport called for 2 resource(s)
+2026/03/05 21:08:04.136099 [terraform] running import with bin=terraform outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 21:08:26.276037 [terraform] import complete: ✓ aws_cognito_user_pool.platform_users_sso
+✓ aws_cognito_user_pool.platform_users_nonprod
+
+2 imported, 0 failed
+2026/03/05 21:08:26.276112 [tui] step: Importing → Done
+2026/03/05 21:08:37.460427 [opencode] stopping server (pid=95482)
+2026/03/05 21:22:44.459928 [debuglog] initialized — writing to terraclaw.log
+2026/03/05 21:22:44.460176 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/05 21:22:44.472263 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/05 21:22:44.472300 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 21:22:44.473798 [opencode] process started (pid=97119), waiting for server...
+2026/03/05 21:22:44.490514 [opencode] server ready at http://127.0.0.1:4096
+2026/03/05 21:22:49.142231 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/05 21:22:50.137367 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/05 21:22:50.137726 [graph] scanning 37 key tables for schema=aws
+2026/03/05 21:22:50.137845 [graph] progress: 0/37 — aws_vpc
+2026/03/05 21:22:51.481088 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/05 21:22:51.481213 [graph] progress: 1/37 — aws_subnet
+2026/03/05 21:22:51.482439 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/05 21:22:51.482490 [graph] progress: 2/37 — aws_security_group
+2026/03/05 21:22:51.482789 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/05 21:22:51.482817 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/05 21:22:51.483048 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/05 21:22:51.483168 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/05 21:22:51.483331 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/05 21:22:51.483341 [graph] progress: 5/37 — aws_route_table
+2026/03/05 21:22:51.483488 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/05 21:22:51.483498 [graph] progress: 6/37 — aws_network_interface
+2026/03/05 21:22:51.483647 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/05 21:22:51.483663 [graph] progress: 7/37 — aws_eip
+2026/03/05 21:22:51.483870 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/05 21:22:51.483878 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/05 21:23:34.529448 [graph] scanned aws_ec2_instance: 72 resource(s), total=77
+2026/03/05 21:23:34.529902 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/05 21:23:34.917669 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=89
+2026/03/05 21:23:34.917707 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/05 21:23:34.918091 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/05 21:23:34.918112 [graph] progress: 11/37 — aws_lambda_function
+2026/03/05 21:23:42.871401 [graph] scanned aws_lambda_function: 67 resource(s), total=156
+2026/03/05 21:23:42.871631 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/05 21:23:45.115617 [graph] scanned aws_ecs_cluster: 4 resource(s), total=160
+2026/03/05 21:23:45.115653 [graph] progress: 13/37 — aws_ecs_service
+2026/03/05 21:23:46.354916 [graph] scanned aws_ecs_service: 1 resource(s), total=161
+2026/03/05 21:23:46.354979 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/05 21:23:47.723345 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=361
+2026/03/05 21:23:47.723378 [graph] progress: 15/37 — aws_iam_role
+2026/03/05 21:24:03.075349 [graph] scanned aws_iam_role: 200 resource(s), total=561
+2026/03/05 21:24:03.075694 [graph] progress: 16/37 — aws_iam_policy
+2026/03/05 21:24:09.502747 [graph] scanned aws_iam_policy: 200 resource(s), total=761
+2026/03/05 21:24:09.503041 [graph] progress: 17/37 — aws_iam_user
+2026/03/05 21:24:12.048330 [graph] scanned aws_iam_user: 37 resource(s), total=798
+2026/03/05 21:24:12.048371 [graph] progress: 18/37 — aws_iam_group
+2026/03/05 21:24:13.432669 [graph] scanned aws_iam_group: 6 resource(s), total=804
+2026/03/05 21:24:13.432703 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/05 21:24:15.172239 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=827
+2026/03/05 21:24:15.172280 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/05 21:24:21.056689 [graph] scanned aws_s3_bucket: 198 resource(s), total=1025
+2026/03/05 21:24:21.056718 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/05 21:24:23.981613 [graph] scanned aws_ebs_volume: 94 resource(s), total=1119
+2026/03/05 21:24:23.981665 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/05 21:24:25.219494 [graph] scanned aws_efs_file_system: 3 resource(s), total=1122
+2026/03/05 21:24:25.219535 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/05 21:24:26.404398 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1122
+2026/03/05 21:24:26.404438 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/05 21:24:26.628364 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1122
+2026/03/05 21:24:26.628408 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/05 21:24:28.416202 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1130
+2026/03/05 21:24:28.416245 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/05 21:24:29.446159 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1130
+2026/03/05 21:24:29.446182 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/05 21:24:30.827597 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1132
+2026/03/05 21:24:30.827647 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/05 21:24:31.704850 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1133
+2026/03/05 21:24:31.704887 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/05 21:24:32.689422 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1133
+2026/03/05 21:24:32.689464 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/05 21:24:33.674719 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1134
+2026/03/05 21:24:33.674776 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/05 21:24:34.452648 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1135
+2026/03/05 21:24:34.452680 [graph] progress: 32/37 — aws_route53_zone
+2026/03/05 21:24:37.511258 [graph] scanned aws_route53_zone: 3 resource(s), total=1138
+2026/03/05 21:24:37.511324 [graph] progress: 33/37 — aws_kms_key
+2026/03/05 21:24:39.063018 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: GetKeyPolicy, https response error StatusCode: 400, RequestID: 1c8c8fe9-c142-4aaa-828d-3ced5c7030fd, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:GetKeyPolicy on resource: arn:aws:kms:eu-central-1:790543352839:key/fc88e202-212e-45a7-9a0e-a24f61bb8557 because no resource-based policy allows the kms:GetKeyPolicy action (HV000)
+2026/03/05 21:24:39.063031 [graph] progress: 34/37 — aws_sns_topic
+2026/03/05 21:24:41.074942 [graph] scanned aws_sns_topic: 5 resource(s), total=1143
+2026/03/05 21:24:41.075017 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/05 21:24:43.138213 [graph] scanned aws_sqs_queue: 19 resource(s), total=1162
+2026/03/05 21:24:43.138267 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/05 21:28:24.748286 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1362
+2026/03/05 21:28:24.748324 [graph] progress: 37/37 — done
+2026/03/05 21:28:25.094499 [graph] detected 1014 relationship(s) across 1362 node(s)
+2026/03/05 21:28:25.094519 [graph] build complete: 1362 nodes, 1014 edges
+2026/03/05 21:28:25.094591 [tui] graph built: 24 type(s), 1362 node(s), 1014 edge(s)
+2026/03/05 21:29:45.741487 [tui] step: BrowseResourceTypes → SelectResources (type="aws_cognito_user_pool")
+2026/03/05 21:29:47.714870 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/05 21:29:50.307570 [tui] step: ConfirmGenerate → Generating
+2026/03/05 21:29:50.307803 [opencode] generateCode called: resources=2
+2026/03/05 21:29:50.307893 [opencode] calling OpenCode with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 21:29:50.307924 [opencode-provider] generating terraform for 2 resource(s) in /Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 21:29:51.488439 [opencode] created session id=ses_34145ed41ffenEuLwnPyG36MQb title="terraclaw-terraform-generation"
+2026/03/05 21:29:51.488459 [opencode-provider] session created: ses_34145ed41ffenEuLwnPyG36MQb
+2026/03/05 21:29:51.549229 [opencode] injected system prompt into session ses_34145ed41ffenEuLwnPyG36MQb (3448 bytes)
+2026/03/05 21:29:51.549713 [opencode-provider] sending resource prompt (21541 bytes)
+2026/03/05 21:29:51.549994 [opencode] sending prompt to session ses_34145ed41ffenEuLwnPyG36MQb (21541 bytes)
+2026/03/05 21:31:51.551866 [opencode] ERROR: prompt: send prompt: Post "http://127.0.0.1:4096/session/ses_34145ed41ffenEuLwnPyG36MQb/message": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/03/05 21:31:51.552081 [tui] async error: prompt: send prompt: Post "http://127.0.0.1:4096/session/ses_34145ed41ffenEuLwnPyG36MQb/message": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/03/05 21:36:24.271995 [opencode] stopping server (pid=97119)
+2026/03/05 21:50:28.741979 [debuglog] initialized — writing to terraclaw.log
+2026/03/05 21:50:28.742237 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/05 21:50:28.758953 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/05 21:50:28.758988 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 21:50:28.761498 [opencode] process started (pid=1649), waiting for server...
+2026/03/05 21:50:29.221291 [opencode] server ready at http://127.0.0.1:4096
+2026/03/05 21:50:56.510325 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/05 21:50:57.279408 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/05 21:50:57.279798 [graph] scanning 37 key tables for schema=aws
+2026/03/05 21:50:57.279938 [graph] progress: 0/37 — aws_vpc
+2026/03/05 21:50:58.827577 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/05 21:50:58.827621 [graph] progress: 1/37 — aws_subnet
+2026/03/05 21:50:58.828584 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/05 21:50:58.828605 [graph] progress: 2/37 — aws_security_group
+2026/03/05 21:50:58.828783 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/05 21:50:58.828814 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/05 21:50:58.829022 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/05 21:50:58.829036 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/05 21:50:58.829181 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/05 21:50:58.829197 [graph] progress: 5/37 — aws_route_table
+2026/03/05 21:50:58.829365 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/05 21:50:58.829376 [graph] progress: 6/37 — aws_network_interface
+2026/03/05 21:50:58.829513 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/05 21:50:58.829530 [graph] progress: 7/37 — aws_eip
+2026/03/05 21:50:58.829664 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/05 21:50:58.829678 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/05 21:51:04.502439 [graph] scanned aws_ec2_instance: 72 resource(s), total=77
+2026/03/05 21:51:04.502519 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/05 21:51:04.836082 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=89
+2026/03/05 21:51:04.836203 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/05 21:51:04.836747 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/05 21:51:04.836782 [graph] progress: 11/37 — aws_lambda_function
+2026/03/05 21:51:12.898607 [graph] scanned aws_lambda_function: 67 resource(s), total=156
+2026/03/05 21:51:12.898666 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/05 21:51:15.157733 [graph] scanned aws_ecs_cluster: 4 resource(s), total=160
+2026/03/05 21:51:15.158112 [graph] progress: 13/37 — aws_ecs_service
+2026/03/05 21:51:16.412110 [graph] scanned aws_ecs_service: 1 resource(s), total=161
+2026/03/05 21:51:16.412192 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/05 21:51:17.818853 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=361
+2026/03/05 21:51:17.818901 [graph] progress: 15/37 — aws_iam_role
+2026/03/05 21:51:33.211232 [graph] scanned aws_iam_role: 200 resource(s), total=561
+2026/03/05 21:51:33.211266 [graph] progress: 16/37 — aws_iam_policy
+2026/03/05 21:51:39.732889 [graph] scanned aws_iam_policy: 200 resource(s), total=761
+2026/03/05 21:51:39.733086 [graph] progress: 17/37 — aws_iam_user
+2026/03/05 21:51:42.155818 [graph] scanned aws_iam_user: 37 resource(s), total=798
+2026/03/05 21:51:42.157873 [graph] progress: 18/37 — aws_iam_group
+2026/03/05 21:51:43.254630 [graph] scanned aws_iam_group: 6 resource(s), total=804
+2026/03/05 21:51:43.254764 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/05 21:51:45.076473 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=827
+2026/03/05 21:51:45.076560 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/05 21:51:51.829701 [graph] scanned aws_s3_bucket: 198 resource(s), total=1025
+2026/03/05 21:51:51.829911 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/05 21:51:54.375305 [graph] scanned aws_ebs_volume: 93 resource(s), total=1118
+2026/03/05 21:51:54.375415 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/05 21:51:55.708535 [graph] scanned aws_efs_file_system: 3 resource(s), total=1121
+2026/03/05 21:51:55.708748 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/05 21:51:56.789650 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1121
+2026/03/05 21:51:56.789804 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/05 21:51:57.079776 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1121
+2026/03/05 21:51:57.079940 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/05 21:51:58.917900 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1129
+2026/03/05 21:51:58.918225 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/05 21:52:00.099228 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1129
+2026/03/05 21:52:00.099305 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/05 21:52:01.529319 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1131
+2026/03/05 21:52:01.529385 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/05 21:52:02.797359 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1132
+2026/03/05 21:52:02.797498 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/05 21:52:03.877779 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1132
+2026/03/05 21:52:03.878165 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/05 21:52:04.879251 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1133
+2026/03/05 21:52:04.879380 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/05 21:52:05.874293 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1134
+2026/03/05 21:52:05.875081 [graph] progress: 32/37 — aws_route53_zone
+2026/03/05 21:52:09.010570 [graph] scanned aws_route53_zone: 3 resource(s), total=1137
+2026/03/05 21:52:09.010689 [graph] progress: 33/37 — aws_kms_key
+2026/03/05 21:52:10.553528 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: GetKeyPolicy, https response error StatusCode: 400, RequestID: 45639063-73e4-4021-9b3d-ef37b050abc2, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:GetKeyPolicy on resource: arn:aws:kms:eu-central-1:790543352839:key/e83d6894-caad-415e-904e-d0395813988b because no resource-based policy allows the kms:GetKeyPolicy action (HV000)
+2026/03/05 21:52:10.553546 [graph] progress: 34/37 — aws_sns_topic
+2026/03/05 21:52:12.538395 [graph] scanned aws_sns_topic: 5 resource(s), total=1142
+2026/03/05 21:52:12.539612 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/05 21:52:14.525480 [graph] scanned aws_sqs_queue: 19 resource(s), total=1161
+2026/03/05 21:52:14.525611 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/05 21:53:55.221544 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1361
+2026/03/05 21:53:55.221893 [graph] progress: 37/37 — done
+2026/03/05 21:53:55.564053 [graph] detected 1013 relationship(s) across 1361 node(s)
+2026/03/05 21:53:55.564081 [graph] build complete: 1361 nodes, 1013 edges
+2026/03/05 21:53:55.564155 [tui] graph built: 24 type(s), 1361 node(s), 1013 edge(s)
+2026/03/05 21:59:48.035231 [tui] step: BrowseResourceTypes → SelectResources (type="aws_cognito_user_pool")
+2026/03/05 21:59:50.370404 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/05 21:59:52.831979 [tui] step: ConfirmGenerate → Generating
+2026/03/05 21:59:52.832314 [opencode] generateCode called: resources=2
+2026/03/05 21:59:52.832355 [opencode] calling OpenCode with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 21:59:52.832390 [opencode-provider] generating terraform for 2 resource(s) in /Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 21:59:52.850846 [opencode] created session id=ses_3412a70b1ffeRzhc1ox3LTZUw2 title="terraclaw-terraform-generation"
+2026/03/05 21:59:52.850864 [opencode-provider] session created: ses_3412a70b1ffeRzhc1ox3LTZUw2
+2026/03/05 21:59:52.902687 [opencode] injected system prompt into session ses_3412a70b1ffeRzhc1ox3LTZUw2 (3448 bytes)
+2026/03/05 21:59:52.903172 [opencode-provider] sending resource prompt (21541 bytes)
+2026/03/05 21:59:52.903303 [opencode] sending prompt to session ses_3412a70b1ffeRzhc1ox3LTZUw2 (21541 bytes)
+2026/03/05 22:01:43.454803 [opencode] stopping server (pid=1649)
+2026/03/05 22:03:08.636656 [debuglog] initialized — writing to terraclaw.log
+2026/03/05 22:03:08.637090 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/05 22:03:08.647777 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/05 22:03:08.647899 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 22:03:08.648972 [opencode] process started (pid=4009), waiting for server...
+2026/03/05 22:03:09.061400 [opencode] server ready at http://127.0.0.1:4096
+2026/03/05 22:03:10.445474 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/05 22:03:10.927642 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/05 22:03:10.927907 [graph] scanning 37 key tables for schema=aws
+2026/03/05 22:03:10.928620 [graph] progress: 0/37 — aws_vpc
+2026/03/05 22:03:12.387478 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/05 22:03:12.387531 [graph] progress: 1/37 — aws_subnet
+2026/03/05 22:03:12.387875 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/05 22:03:12.387887 [graph] progress: 2/37 — aws_security_group
+2026/03/05 22:03:12.388042 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/05 22:03:12.388058 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/05 22:03:12.388187 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/05 22:03:12.388197 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/05 22:03:12.388320 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/05 22:03:12.388327 [graph] progress: 5/37 — aws_route_table
+2026/03/05 22:03:12.388462 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/05 22:03:12.388469 [graph] progress: 6/37 — aws_network_interface
+2026/03/05 22:03:12.388574 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/05 22:03:12.388581 [graph] progress: 7/37 — aws_eip
+2026/03/05 22:03:12.388684 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/05 22:03:12.388691 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/05 22:03:17.330298 [graph] scanned aws_ec2_instance: 72 resource(s), total=77
+2026/03/05 22:03:17.330675 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/05 22:03:17.659896 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=89
+2026/03/05 22:03:17.659917 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/05 22:03:17.660147 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/05 22:03:17.660181 [graph] progress: 11/37 — aws_lambda_function
+2026/03/05 22:03:25.667691 [graph] scanned aws_lambda_function: 67 resource(s), total=156
+2026/03/05 22:03:25.668442 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/05 22:03:27.632402 [graph] scanned aws_ecs_cluster: 4 resource(s), total=160
+2026/03/05 22:03:27.632558 [graph] progress: 13/37 — aws_ecs_service
+2026/03/05 22:03:29.907260 [graph] scanned aws_ecs_service: 1 resource(s), total=161
+2026/03/05 22:03:29.907436 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/05 22:03:31.784295 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=361
+2026/03/05 22:03:31.784401 [graph] progress: 15/37 — aws_iam_role
+2026/03/05 22:03:47.457133 [graph] scanned aws_iam_role: 200 resource(s), total=561
+2026/03/05 22:03:47.457373 [graph] progress: 16/37 — aws_iam_policy
+2026/03/05 22:03:53.893299 [graph] scanned aws_iam_policy: 200 resource(s), total=761
+2026/03/05 22:03:53.893652 [graph] progress: 17/37 — aws_iam_user
+2026/03/05 22:03:56.118099 [graph] scanned aws_iam_user: 37 resource(s), total=798
+2026/03/05 22:03:56.118194 [graph] progress: 18/37 — aws_iam_group
+2026/03/05 22:03:57.526166 [graph] scanned aws_iam_group: 6 resource(s), total=804
+2026/03/05 22:03:57.526206 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/05 22:03:59.290532 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=827
+2026/03/05 22:03:59.290604 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/05 22:04:05.086700 [graph] scanned aws_s3_bucket: 198 resource(s), total=1025
+2026/03/05 22:04:05.086917 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/05 22:04:07.775397 [graph] scanned aws_ebs_volume: 93 resource(s), total=1118
+2026/03/05 22:04:07.775512 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/05 22:04:09.179658 [graph] scanned aws_efs_file_system: 3 resource(s), total=1121
+2026/03/05 22:04:09.179781 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/05 22:04:10.232882 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1121
+2026/03/05 22:04:10.233023 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/05 22:04:10.523783 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1121
+2026/03/05 22:04:10.523886 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/05 22:04:12.330502 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1129
+2026/03/05 22:04:12.331602 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/05 22:04:13.479807 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1129
+2026/03/05 22:04:13.479893 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/05 22:04:15.450654 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1131
+2026/03/05 22:04:15.450717 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/05 22:04:16.490053 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1132
+2026/03/05 22:04:16.490195 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/05 22:04:17.690559 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1132
+2026/03/05 22:04:17.690717 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/05 22:04:18.734888 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1133
+2026/03/05 22:04:18.734969 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/05 22:04:19.531912 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1134
+2026/03/05 22:04:19.532060 [graph] progress: 32/37 — aws_route53_zone
+2026/03/05 22:04:22.922462 [graph] scanned aws_route53_zone: 3 resource(s), total=1137
+2026/03/05 22:04:22.922657 [graph] progress: 33/37 — aws_kms_key
+2026/03/05 22:04:24.357813 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: DescribeKey, https response error StatusCode: 400, RequestID: fbfa21ef-9ce0-4665-bcd2-2667134d8610, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:DescribeKey on resource: arn:aws:kms:eu-central-1:790543352839:key/297334f7-71d0-46fd-a310-d9cf041c8ca8 because no resource-based policy allows the kms:DescribeKey action (HV000)
+2026/03/05 22:04:24.357896 [graph] progress: 34/37 — aws_sns_topic
+2026/03/05 22:04:26.418676 [graph] scanned aws_sns_topic: 5 resource(s), total=1142
+2026/03/05 22:04:26.418766 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/05 22:04:28.435479 [graph] scanned aws_sqs_queue: 19 resource(s), total=1161
+2026/03/05 22:04:28.435577 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/05 22:09:14.206321 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1361
+2026/03/05 22:09:14.206702 [graph] progress: 37/37 — done
+2026/03/05 22:09:14.542781 [graph] detected 1013 relationship(s) across 1361 node(s)
+2026/03/05 22:09:14.542811 [graph] build complete: 1361 nodes, 1013 edges
+2026/03/05 22:09:14.542892 [tui] graph built: 24 type(s), 1361 node(s), 1013 edge(s)
+2026/03/05 22:27:08.086358 [tui] step: BrowseResourceTypes → SelectResources (type="aws_cognito_user_pool")
+2026/03/05 22:27:10.003378 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/05 22:27:10.596154 [tui] step: ConfirmGenerate → Generating
+2026/03/05 22:27:10.596528 [opencode] generateCode called: resources=2
+2026/03/05 22:27:10.596643 [opencode] calling OpenCode with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 22:27:10.596676 [opencode-provider] generating terraform for 2 resource(s) in /Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/05 22:27:10.620108 [opencode] created session id=ses_341117327ffe1jmwju84Mwh0F0 title="terraclaw-terraform-generation"
+2026/03/05 22:27:10.620128 [opencode-provider] session created: ses_341117327ffe1jmwju84Mwh0F0
+2026/03/05 22:27:10.676067 [opencode] injected system prompt into session ses_341117327ffe1jmwju84Mwh0F0 (3448 bytes)
+2026/03/05 22:27:10.676201 [opencode-provider] sending resource prompt (21541 bytes)
+2026/03/05 22:27:10.676265 [opencode] sending prompt to session ses_341117327ffe1jmwju84Mwh0F0 (21541 bytes)
+2026/03/05 22:29:10.676825 [opencode] ERROR: prompt: send prompt: Post "http://127.0.0.1:4096/session/ses_341117327ffe1jmwju84Mwh0F0/message": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/03/05 22:29:10.677662 [tui] async error: prompt: send prompt: Post "http://127.0.0.1:4096/session/ses_341117327ffe1jmwju84Mwh0F0/message": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/03/05 22:33:36.487008 [opencode] stopping server (pid=4009)
+2026/03/06 16:46:20.812675 [debuglog] initialized — writing to terraclaw.log
+2026/03/06 16:46:20.813200 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/06 16:46:20.827572 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/06 16:46:20.827701 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 16:46:20.829775 [opencode] process started (pid=45382), waiting for server...
+2026/03/06 16:46:21.260273 [opencode] server ready at http://127.0.0.1:4096
+2026/03/06 16:46:22.085020 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/06 16:46:23.171109 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/06 16:46:23.171310 [graph] scanning 37 key tables for schema=aws
+2026/03/06 16:46:23.171424 [graph] progress: 0/37 — aws_vpc
+2026/03/06 16:46:26.436767 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/06 16:46:26.436910 [graph] progress: 1/37 — aws_subnet
+2026/03/06 16:46:26.437806 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/06 16:46:26.437847 [graph] progress: 2/37 — aws_security_group
+2026/03/06 16:46:26.438062 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/06 16:46:26.438077 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/06 16:46:26.438199 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/06 16:46:26.438206 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/06 16:46:26.438312 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/06 16:46:26.438321 [graph] progress: 5/37 — aws_route_table
+2026/03/06 16:46:26.438469 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/06 16:46:26.438481 [graph] progress: 6/37 — aws_network_interface
+2026/03/06 16:46:26.438616 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/06 16:46:26.438625 [graph] progress: 7/37 — aws_eip
+2026/03/06 16:46:26.438759 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/06 16:46:26.438767 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/06 16:46:30.451128 [graph] scanned aws_ec2_instance: 71 resource(s), total=76
+2026/03/06 16:46:30.451156 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/06 16:46:30.787261 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=88
+2026/03/06 16:46:30.787301 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/06 16:46:30.787712 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/06 16:46:30.787728 [graph] progress: 11/37 — aws_lambda_function
+2026/03/06 16:46:38.760772 [graph] scanned aws_lambda_function: 67 resource(s), total=155
+2026/03/06 16:46:38.760901 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/06 16:46:41.043293 [graph] scanned aws_ecs_cluster: 4 resource(s), total=159
+2026/03/06 16:46:41.043351 [graph] progress: 13/37 — aws_ecs_service
+2026/03/06 16:46:42.418900 [graph] scanned aws_ecs_service: 1 resource(s), total=160
+2026/03/06 16:46:42.418951 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/06 16:46:44.084266 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=360
+2026/03/06 16:46:44.084427 [graph] progress: 15/37 — aws_iam_role
+2026/03/06 16:46:59.626054 [graph] scanned aws_iam_role: 200 resource(s), total=560
+2026/03/06 16:46:59.626256 [graph] progress: 16/37 — aws_iam_policy
+2026/03/06 16:47:06.143766 [graph] scanned aws_iam_policy: 200 resource(s), total=760
+2026/03/06 16:47:06.143869 [graph] progress: 17/37 — aws_iam_user
+2026/03/06 16:47:08.716151 [graph] scanned aws_iam_user: 37 resource(s), total=797
+2026/03/06 16:47:08.716211 [graph] progress: 18/37 — aws_iam_group
+2026/03/06 16:47:09.815950 [graph] scanned aws_iam_group: 6 resource(s), total=803
+2026/03/06 16:47:09.816000 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/06 16:47:12.196362 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=826
+2026/03/06 16:47:12.196464 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/06 16:47:19.036162 [graph] scanned aws_s3_bucket: 198 resource(s), total=1024
+2026/03/06 16:47:19.036229 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/06 16:47:21.407708 [graph] scanned aws_ebs_volume: 93 resource(s), total=1117
+2026/03/06 16:47:21.407744 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/06 16:47:22.781559 [graph] scanned aws_efs_file_system: 3 resource(s), total=1120
+2026/03/06 16:47:22.781614 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/06 16:47:23.821304 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1120
+2026/03/06 16:47:23.821455 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/06 16:47:24.060897 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1120
+2026/03/06 16:47:24.061127 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/06 16:47:25.911918 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1128
+2026/03/06 16:47:25.912041 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/06 16:47:27.101293 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1128
+2026/03/06 16:47:27.101345 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/06 16:47:28.574040 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1130
+2026/03/06 16:47:28.574158 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/06 16:47:29.506748 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1131
+2026/03/06 16:47:29.506794 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/06 16:47:30.638309 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1131
+2026/03/06 16:47:30.638409 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/06 16:47:31.434494 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1132
+2026/03/06 16:47:31.434567 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/06 16:47:32.233847 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1133
+2026/03/06 16:47:32.234070 [graph] progress: 32/37 — aws_route53_zone
+2026/03/06 16:47:35.425281 [graph] scanned aws_route53_zone: 3 resource(s), total=1136
+2026/03/06 16:47:35.425351 [graph] progress: 33/37 — aws_kms_key
+2026/03/06 16:47:36.999764 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: ListResourceTags, https response error StatusCode: 400, RequestID: 62bf9ada-e0e3-4251-b942-13c55e02a5f8, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:ListResourceTags on resource: arn:aws:kms:eu-central-1:790543352839:key/5ff6b101-afb3-4c6d-9039-54471c788344 because no resource-based policy allows the kms:ListResourceTags action (HV000)
+2026/03/06 16:47:36.999803 [graph] progress: 34/37 — aws_sns_topic
+2026/03/06 16:47:39.510243 [graph] scanned aws_sns_topic: 5 resource(s), total=1141
+2026/03/06 16:47:39.510506 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/06 16:47:41.528490 [graph] scanned aws_sqs_queue: 19 resource(s), total=1160
+2026/03/06 16:47:41.528606 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/06 16:49:16.867468 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1360
+2026/03/06 16:49:16.867884 [graph] progress: 37/37 — done
+2026/03/06 16:49:17.222889 [graph] detected 1012 relationship(s) across 1360 node(s)
+2026/03/06 16:49:17.222918 [graph] build complete: 1360 nodes, 1012 edges
+2026/03/06 16:49:17.223004 [tui] graph built: 24 type(s), 1360 node(s), 1012 edge(s)
+2026/03/06 16:51:58.975693 [tui] step: BrowseResourceTypes → SelectResources (type="aws_cognito_user_pool")
+2026/03/06 16:52:00.966373 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/06 16:52:01.571616 [tui] step: ConfirmGenerate → Generating
+2026/03/06 16:52:01.571861 [opencode] generateCode called: resources=2
+2026/03/06 16:52:01.571933 [opencode] calling OpenCode with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 16:52:01.571949 [opencode-provider] generating terraform for 2 resource(s) in /Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 16:52:01.625460 [opencode] created session id=ses_33d1dedf7ffeJIaj6Ctovv4bi4 title="terraclaw-terraform-generation"
+2026/03/06 16:52:01.625498 [opencode-provider] session created: ses_33d1dedf7ffeJIaj6Ctovv4bi4
+2026/03/06 16:52:01.751969 [opencode] injected system prompt into session ses_33d1dedf7ffeJIaj6Ctovv4bi4 (3730 bytes)
+2026/03/06 16:52:01.752658 [opencode-provider] sending resource prompt (39270 bytes)
+2026/03/06 16:52:01.752980 [opencode] sending prompt to session ses_33d1dedf7ffeJIaj6Ctovv4bi4 (39270 bytes)
+2026/03/06 16:54:01.753973 [opencode] ERROR: prompt: send prompt: Post "http://127.0.0.1:4096/session/ses_33d1dedf7ffeJIaj6Ctovv4bi4/message": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/03/06 16:54:01.755161 [tui] async error: prompt: send prompt: Post "http://127.0.0.1:4096/session/ses_33d1dedf7ffeJIaj6Ctovv4bi4/message": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+2026/03/06 17:27:13.270657 [opencode] stopping server (pid=45382)
+2026/03/06 17:27:34.063267 [debuglog] initialized — writing to terraclaw.log
+2026/03/06 17:27:34.063626 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/06 17:27:34.074205 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/06 17:27:34.074246 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 17:27:34.076968 [opencode] process started (pid=54819), waiting for server...
+2026/03/06 17:27:34.085892 [opencode] server ready at http://127.0.0.1:4096
+2026/03/06 17:27:36.195928 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/06 17:27:40.940274 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/06 17:27:40.940966 [graph] scanning 37 key tables for schema=aws
+2026/03/06 17:27:40.941064 [graph] progress: 0/37 — aws_vpc
+2026/03/06 17:27:42.363821 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/06 17:27:42.363868 [graph] progress: 1/37 — aws_subnet
+2026/03/06 17:27:42.364757 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/06 17:27:42.364772 [graph] progress: 2/37 — aws_security_group
+2026/03/06 17:27:42.364900 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/06 17:27:42.364907 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/06 17:27:42.365004 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/06 17:27:42.365009 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/06 17:27:42.365095 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/06 17:27:42.365101 [graph] progress: 5/37 — aws_route_table
+2026/03/06 17:27:42.365178 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/06 17:27:42.365182 [graph] progress: 6/37 — aws_network_interface
+2026/03/06 17:27:42.365285 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/06 17:27:42.365291 [graph] progress: 7/37 — aws_eip
+2026/03/06 17:27:42.365423 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/06 17:27:42.365428 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/06 17:27:52.061767 [graph] scanned aws_ec2_instance: 71 resource(s), total=76
+2026/03/06 17:27:52.062051 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/06 17:27:52.455177 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=88
+2026/03/06 17:27:52.455517 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/06 17:27:52.456406 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/06 17:27:52.456439 [graph] progress: 11/37 — aws_lambda_function
+2026/03/06 17:28:00.252792 [graph] scanned aws_lambda_function: 67 resource(s), total=155
+2026/03/06 17:28:00.253047 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/06 17:28:02.225045 [graph] scanned aws_ecs_cluster: 4 resource(s), total=159
+2026/03/06 17:28:02.225194 [graph] progress: 13/37 — aws_ecs_service
+2026/03/06 17:28:03.536658 [graph] scanned aws_ecs_service: 1 resource(s), total=160
+2026/03/06 17:28:03.536753 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/06 17:28:04.967611 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=360
+2026/03/06 17:28:04.967649 [graph] progress: 15/37 — aws_iam_role
+2026/03/06 17:28:20.411847 [graph] scanned aws_iam_role: 200 resource(s), total=560
+2026/03/06 17:28:20.412511 [graph] progress: 16/37 — aws_iam_policy
+2026/03/06 17:28:26.941322 [graph] scanned aws_iam_policy: 200 resource(s), total=760
+2026/03/06 17:28:26.941515 [graph] progress: 17/37 — aws_iam_user
+2026/03/06 17:28:29.584538 [graph] scanned aws_iam_user: 37 resource(s), total=797
+2026/03/06 17:28:29.584616 [graph] progress: 18/37 — aws_iam_group
+2026/03/06 17:28:30.746290 [graph] scanned aws_iam_group: 6 resource(s), total=803
+2026/03/06 17:28:30.746381 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/06 17:28:33.183730 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=826
+2026/03/06 17:28:33.184143 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/06 17:28:41.596083 [graph] scanned aws_s3_bucket: 198 resource(s), total=1024
+2026/03/06 17:28:41.596298 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/06 17:28:44.592235 [graph] scanned aws_ebs_volume: 93 resource(s), total=1117
+2026/03/06 17:28:44.592304 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/06 17:28:45.900542 [graph] scanned aws_efs_file_system: 3 resource(s), total=1120
+2026/03/06 17:28:45.900712 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/06 17:28:47.116928 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1120
+2026/03/06 17:28:47.117017 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/06 17:28:47.413707 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1120
+2026/03/06 17:28:47.413971 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/06 17:28:49.399369 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1128
+2026/03/06 17:28:49.399791 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/06 17:28:50.555641 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1128
+2026/03/06 17:28:50.555780 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/06 17:28:51.929002 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1130
+2026/03/06 17:28:51.929072 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/06 17:28:52.870374 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1131
+2026/03/06 17:28:52.870471 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/06 17:28:54.027248 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1131
+2026/03/06 17:28:54.027506 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/06 17:28:55.034666 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1132
+2026/03/06 17:28:55.034771 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/06 17:28:55.840024 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1133
+2026/03/06 17:28:55.840092 [graph] progress: 32/37 — aws_route53_zone
+2026/03/06 17:28:58.727195 [graph] scanned aws_route53_zone: 3 resource(s), total=1136
+2026/03/06 17:28:58.727266 [graph] progress: 33/37 — aws_kms_key
+2026/03/06 17:29:00.330418 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: ListResourceTags, https response error StatusCode: 400, RequestID: 4c1b2f29-a39e-4488-994d-4392f85280fb, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:ListResourceTags on resource: arn:aws:kms:eu-central-1:790543352839:key/e83d6894-caad-415e-904e-d0395813988b because no resource-based policy allows the kms:ListResourceTags action (HV000)
+2026/03/06 17:29:00.330440 [graph] progress: 34/37 — aws_sns_topic
+2026/03/06 17:29:02.501407 [graph] scanned aws_sns_topic: 5 resource(s), total=1141
+2026/03/06 17:29:02.501595 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/06 17:29:04.583219 [graph] scanned aws_sqs_queue: 19 resource(s), total=1160
+2026/03/06 17:29:04.583356 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/06 17:32:49.206609 [graph] skipping table aws_cloudwatch_log_group: pq: rpc error: code = Unknown desc = aws: operation error CloudWatch Logs: ListTagsForResource, exceeded maximum number of attempts, 9, https response error StatusCode: 400, RequestID: ab5b1cfb-1729-4396-b0e8-1765cead9a19, api error ThrottlingException: Rate exceeded (HV000)
+2026/03/06 17:32:49.207080 [graph] progress: 37/37 — done
+2026/03/06 17:32:49.478643 [graph] detected 757 relationship(s) across 1160 node(s)
+2026/03/06 17:32:49.478679 [graph] build complete: 1160 nodes, 757 edges
+2026/03/06 17:32:49.478759 [tui] graph built: 23 type(s), 1160 node(s), 757 edge(s)
+2026/03/06 17:38:56.297818 [tui] step: BrowseResourceTypes → SelectResources (type="aws_cognito_user_pool")
+2026/03/06 17:38:58.715776 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/06 17:38:59.397852 [tui] step: ConfirmGenerate → Generating
+2026/03/06 17:38:59.398005 [opencode] generateCode called: resources=2
+2026/03/06 17:38:59.398032 [opencode] setting up session with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 17:38:59.416178 [opencode] created session id=ses_33cf2eef2ffeIimHdMHOFjXQ4J title="terraclaw-terraform-generation"
+2026/03/06 17:38:59.416195 [opencode] session created: ses_33cf2eef2ffeIimHdMHOFjXQ4J
+2026/03/06 17:38:59.427746 [opencode] injected system prompt into session ses_33cf2eef2ffeIimHdMHOFjXQ4J (3730 bytes)
+2026/03/06 17:38:59.427850 [opencode] sending prompt async (39270 bytes)
+2026/03/06 17:38:59.427878 [tui] generation started, polling session ses_33cf2eef2ffeIimHdMHOFjXQ4J
+2026/03/06 17:38:59.427970 [opencode] sending prompt to session ses_33cf2eef2ffeIimHdMHOFjXQ4J (39270 bytes)
+2026/03/06 17:39:15.491675 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:17.500061 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:19.505250 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:21.511285 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:23.516417 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:25.522822 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:27.537393 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:29.545647 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:31.556355 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:33.568405 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:35.577769 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:37.583435 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:39.588836 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:41.596817 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:43.602804 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:45.610128 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:47.624304 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:49.632151 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:51.639634 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:53.649638 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:55.653602 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:57.664049 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:39:59.668740 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:01.672918 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:03.680282 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:05.689265 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:07.705020 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:09.721988 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:11.733177 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:13.747640 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:15.757269 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:17.767999 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:19.773140 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:21.779916 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:23.786833 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:25.793848 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:27.805994 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:29.813641 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:31.821469 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:33.829723 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:35.836354 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:37.844102 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:39.855845 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:41.864327 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:43.874370 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:45.883716 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:47.895620 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:49.910244 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:51.916515 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:53.927843 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:55.937809 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:57.943528 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:40:59.957217 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:01.964797 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:03.973818 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:05.985490 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:07.993936 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:10.001205 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:12.009604 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:14.021845 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:16.032140 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:18.042508 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:20.051438 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:22.058352 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:24.078970 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:26.090343 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:28.100955 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:30.107788 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:32.117069 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:34.122742 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:36.127633 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:38.137926 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:40.156174 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:42.163546 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:44.174408 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:46.183684 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:48.202953 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:50.224377 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:52.234523 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:54.248184 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:56.255337 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:41:58.265382 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:00.276612 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:02.300928 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:04.308824 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:06.315686 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:08.328462 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:10.339880 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:12.343571 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:14.347870 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:16.351079 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:18.370412 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:20.385473 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:22.396855 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:24.405693 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:26.412315 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:28.419907 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:30.429378 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:32.439397 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:34.447803 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:36.451202 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:38.456511 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:40.459472 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:42.464013 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:44.483161 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:46.491842 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:48.497602 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:50.503395 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:52.512128 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:54.519642 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:56.523227 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:42:58.543005 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:00.550571 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:02.562070 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:04.570697 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:06.591770 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:08.595538 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:10.634484 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:12.638996 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:14.646093 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:16.660901 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:18.663956 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:20.688348 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:22.696710 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:24.706382 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:26.716368 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:28.735150 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:30.749756 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:32.759308 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:34.763215 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:36.769558 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:38.779430 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:40.799860 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:42.812156 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:44.819238 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:46.824391 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:48.845894 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:50.864758 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:52.879122 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:54.886480 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:56.898241 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:43:58.905543 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:00.916734 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:02.922432 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:04.927792 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:06.931498 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:08.944517 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:10.952659 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:12.959325 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:14.964157 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:16.967233 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:18.969635 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:20.987048 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:22.994404 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:25.002838 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:27.007018 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:29.019820 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:31.029102 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:33.031699 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:35.038255 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:37.047110 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:39.053179 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:41.058451 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:43.066572 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:45.079871 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:47.101020 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:49.106173 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:51.113363 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:53.123285 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:55.129150 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:57.147916 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:44:59.159385 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:01.167218 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:03.195284 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:05.211530 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:07.235102 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:09.249828 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:11.257645 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:13.272938 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:15.279780 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:17.305610 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:19.312353 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:21.326387 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:23.333334 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:25.349294 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:27.354870 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:29.369831 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:31.383573 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:33.398454 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:35.409259 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:37.419986 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:39.431765 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:41.447376 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:43.455106 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:45.467388 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:47.473449 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:49.486030 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:51.498955 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:53.508422 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:55.521291 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:57.530862 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:45:59.539048 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:46:01.550806 [opencode] poll error: decode messages: json: cannot unmarshal object into Go struct field MessagePart.parts.state of type string
+2026/03/06 17:46:01.828230 [opencode] received response from session ses_33cf2eef2ffeIimHdMHOFjXQ4J (1294 bytes)
+2026/03/06 17:46:03.551568 [opencode] prompt completed (err=<nil>)
+2026/03/06 17:46:03.554281 [opencode] found 4 generated file(s)
+2026/03/06 17:46:03.554408 [tui] step: Generating → ViewCode (4 files)
+2026/03/06 17:46:22.318457 [tui] step: ViewCode → ConfirmImport
+2026/03/06 17:46:23.510975 [tui] step: ConfirmImport → Importing
+2026/03/06 17:46:23.511118 [terraform] runImport called for 2 resource(s)
+2026/03/06 17:46:23.511149 [terraform] running import with bin=terraform outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 17:46:31.747402 [terraform] import complete: ✓ aws_cognito_user_pool.platform_users_sso
+✓ aws_cognito_user_pool.platform_users_nonprod
+
+2 imported, 0 failed
+2026/03/06 17:46:31.747715 [tui] step: Importing → Done
+2026/03/06 17:46:35.201662 [opencode] stopping server (pid=54819)
+2026/03/06 17:53:22.487968 [debuglog] initialized — writing to terraclaw.log
+2026/03/06 17:53:22.488395 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/06 17:53:22.501129 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/06 17:53:22.501160 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 17:53:22.503025 [opencode] process started (pid=57712), waiting for server...
+2026/03/06 17:53:22.513876 [opencode] server ready at http://127.0.0.1:4096
+2026/03/06 17:53:23.326988 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/06 17:53:24.083034 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/06 17:53:24.083355 [graph] scanning 37 key tables for schema=aws
+2026/03/06 17:53:24.083462 [graph] progress: 0/37 — aws_vpc
+2026/03/06 17:53:26.675115 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/06 17:53:26.675252 [graph] progress: 1/37 — aws_subnet
+2026/03/06 17:53:26.675826 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/06 17:53:26.675851 [graph] progress: 2/37 — aws_security_group
+2026/03/06 17:53:26.676113 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/06 17:53:26.676126 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/06 17:53:26.676398 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/06 17:53:26.676410 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/06 17:53:26.676547 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/06 17:53:26.676563 [graph] progress: 5/37 — aws_route_table
+2026/03/06 17:53:26.676675 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/06 17:53:26.676686 [graph] progress: 6/37 — aws_network_interface
+2026/03/06 17:53:26.676803 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/06 17:53:26.676814 [graph] progress: 7/37 — aws_eip
+2026/03/06 17:53:26.676918 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/06 17:53:26.676926 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/06 17:58:12.372428 [graph] scanned aws_ec2_instance: 71 resource(s), total=76
+2026/03/06 17:58:12.373140 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/06 17:58:12.762837 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=88
+2026/03/06 17:58:12.763004 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/06 17:58:12.763707 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/06 17:58:12.763769 [graph] progress: 11/37 — aws_lambda_function
+2026/03/06 17:58:20.979986 [graph] scanned aws_lambda_function: 67 resource(s), total=155
+2026/03/06 17:58:20.980294 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/06 17:58:23.181916 [graph] scanned aws_ecs_cluster: 4 resource(s), total=159
+2026/03/06 17:58:23.182087 [graph] progress: 13/37 — aws_ecs_service
+2026/03/06 17:58:24.435278 [graph] scanned aws_ecs_service: 1 resource(s), total=160
+2026/03/06 17:58:24.435335 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/06 17:58:25.858924 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=360
+2026/03/06 17:58:25.858974 [graph] progress: 15/37 — aws_iam_role
+2026/03/06 17:58:41.632651 [graph] scanned aws_iam_role: 200 resource(s), total=560
+2026/03/06 17:58:41.632924 [graph] progress: 16/37 — aws_iam_policy
+2026/03/06 17:58:48.179804 [graph] scanned aws_iam_policy: 200 resource(s), total=760
+2026/03/06 17:58:48.179856 [graph] progress: 17/37 — aws_iam_user
+2026/03/06 17:58:50.766078 [graph] scanned aws_iam_user: 37 resource(s), total=797
+2026/03/06 17:58:50.766240 [graph] progress: 18/37 — aws_iam_group
+2026/03/06 17:58:51.921271 [graph] scanned aws_iam_group: 6 resource(s), total=803
+2026/03/06 17:58:51.921419 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/06 17:58:54.361624 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=826
+2026/03/06 17:58:54.361800 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/06 17:59:00.929591 [graph] scanned aws_s3_bucket: 198 resource(s), total=1024
+2026/03/06 17:59:00.929821 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/06 17:59:03.422514 [graph] scanned aws_ebs_volume: 93 resource(s), total=1117
+2026/03/06 17:59:03.422579 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/06 17:59:04.719687 [graph] scanned aws_efs_file_system: 3 resource(s), total=1120
+2026/03/06 17:59:04.719753 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/06 17:59:05.918820 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1120
+2026/03/06 17:59:05.918998 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/06 17:59:06.237850 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1120
+2026/03/06 17:59:06.237969 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/06 17:59:08.073634 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1128
+2026/03/06 17:59:08.073744 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/06 17:59:09.208894 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1128
+2026/03/06 17:59:09.209057 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/06 17:59:10.611539 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1130
+2026/03/06 17:59:10.611673 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/06 17:59:11.559443 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1131
+2026/03/06 17:59:11.559558 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/06 17:59:12.755519 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1131
+2026/03/06 17:59:12.755685 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/06 17:59:13.563322 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1132
+2026/03/06 17:59:13.563517 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/06 17:59:14.370446 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1133
+2026/03/06 17:59:14.370504 [graph] progress: 32/37 — aws_route53_zone
+2026/03/06 17:59:17.518011 [graph] scanned aws_route53_zone: 3 resource(s), total=1136
+2026/03/06 17:59:17.518081 [graph] progress: 33/37 — aws_kms_key
+2026/03/06 17:59:18.899698 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: ListResourceTags, https response error StatusCode: 400, RequestID: 14517163-3b35-405f-be15-93e01a133490, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:ListResourceTags on resource: arn:aws:kms:eu-central-1:790543352839:key/297334f7-71d0-46fd-a310-d9cf041c8ca8 because no resource-based policy allows the kms:ListResourceTags action (HV000)
+2026/03/06 17:59:18.899718 [graph] progress: 34/37 — aws_sns_topic
+2026/03/06 17:59:20.794823 [graph] scanned aws_sns_topic: 5 resource(s), total=1141
+2026/03/06 17:59:20.794951 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/06 17:59:22.915542 [graph] scanned aws_sqs_queue: 19 resource(s), total=1160
+2026/03/06 17:59:22.915709 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/06 18:03:30.049207 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1360
+2026/03/06 18:03:30.050002 [graph] progress: 37/37 — done
+2026/03/06 18:03:30.407312 [graph] detected 1012 relationship(s) across 1360 node(s)
+2026/03/06 18:03:30.407356 [graph] build complete: 1360 nodes, 1012 edges
+2026/03/06 18:03:30.407437 [tui] graph built: 24 type(s), 1360 node(s), 1012 edge(s)
+2026/03/06 18:07:08.216400 [tui] step: BrowseResourceTypes → SelectResources (type="aws_ec2_instance")
+2026/03/06 18:07:14.900186 [tui] step: SelectResources → ConfirmGenerate (1 resource(s) selected)
+2026/03/06 18:07:15.861517 [tui] step: ConfirmGenerate → Generating
+2026/03/06 18:07:15.861683 [opencode] generateCode called: resources=1
+2026/03/06 18:07:15.861713 [opencode] setting up session with 1 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 18:07:15.888110 [opencode] created session id=ses_33cd90c22ffeheXtnygFK25kXs title="terraclaw-terraform-generation"
+2026/03/06 18:07:15.888141 [opencode] session created: ses_33cd90c22ffeheXtnygFK25kXs
+2026/03/06 18:07:15.905704 [opencode] injected system prompt into session ses_33cd90c22ffeheXtnygFK25kXs (3730 bytes)
+2026/03/06 18:07:15.905874 [opencode] sending prompt async (8936 bytes)
+2026/03/06 18:07:15.905918 [tui] generation started, polling session ses_33cd90c22ffeheXtnygFK25kXs
+2026/03/06 18:07:15.905981 [opencode] sending prompt to session ses_33cd90c22ffeheXtnygFK25kXs (8936 bytes)
+2026/03/06 18:10:17.922788 [opencode] received response from session ses_33cd90c22ffeheXtnygFK25kXs (1123 bytes)
+2026/03/06 18:10:18.754717 [opencode] prompt completed (err=<nil>)
+2026/03/06 18:10:18.756667 [opencode] found 4 generated file(s)
+2026/03/06 18:10:18.756745 [tui] step: Generating → ViewCode (4 files)
+2026/03/06 18:17:18.409858 [tui] step: ViewCode → ConfirmImport
+2026/03/06 18:17:19.279437 [tui] step: ConfirmImport → Importing
+2026/03/06 18:17:19.279572 [terraform] runImport called for 1 resource(s)
+2026/03/06 18:17:19.279600 [terraform] running import with bin=terraform outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 18:17:27.597498 [terraform] import complete: ✗ aws_ec2_instance.i_05dd6c124d80b7397: terraform import failed: exit status 1
+[31m[0m[1m[31mError:[0m[1m resource address "aws_ec2_instance.i_05dd6c124d80b7397" does not exist in the configuration.[0m
+
+Before importing this resource, please create its configuration in the root module. For example:
+
+resource "aws_ec2_instance" "i_05dd6c124d80b7397" {
+  # (resource arguments)
+}
+[0m[0m
+
+
+0 imported, 1 failed
+2026/03/06 18:17:27.597710 [tui] step: Importing → Done
+2026/03/06 18:19:25.899386 [opencode] stopping server (pid=57712)
+2026/03/06 22:12:04.237324 [debuglog] initialized — writing to terraclaw.log
+2026/03/06 22:12:04.237777 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/06 22:12:04.252025 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/06 22:12:04.252055 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 22:12:04.254041 [opencode] process started (pid=72491), waiting for server...
+2026/03/06 22:12:04.427363 [opencode] server ready at http://127.0.0.1:4096
+2026/03/06 22:12:05.748728 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/06 22:12:08.614471 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/06 22:12:08.614585 [graph] scanning 37 key tables for schema=aws
+2026/03/06 22:12:08.614624 [graph] progress: 0/37 — aws_vpc
+2026/03/06 22:12:12.241955 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/06 22:12:12.242171 [graph] progress: 1/37 — aws_subnet
+2026/03/06 22:12:12.243381 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/06 22:12:12.243417 [graph] progress: 2/37 — aws_security_group
+2026/03/06 22:12:12.244179 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/06 22:12:12.244193 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/06 22:12:12.244375 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/06 22:12:12.244383 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/06 22:12:12.244585 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/06 22:12:12.244595 [graph] progress: 5/37 — aws_route_table
+2026/03/06 22:12:12.244789 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/06 22:12:12.244795 [graph] progress: 6/37 — aws_network_interface
+2026/03/06 22:12:12.244935 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/06 22:12:12.244942 [graph] progress: 7/37 — aws_eip
+2026/03/06 22:12:12.245066 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/06 22:12:12.245072 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/06 22:12:34.402984 [graph] scanned aws_ec2_instance: 72 resource(s), total=77
+2026/03/06 22:12:34.403008 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/06 22:12:34.855409 [graph] scanned aws_ec2_launch_template: 12 resource(s), total=89
+2026/03/06 22:12:34.855538 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/06 22:12:34.857322 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/06 22:12:34.857386 [graph] progress: 11/37 — aws_lambda_function
+2026/03/06 22:12:43.286573 [graph] scanned aws_lambda_function: 67 resource(s), total=156
+2026/03/06 22:12:43.286723 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/06 22:12:45.869528 [graph] scanned aws_ecs_cluster: 4 resource(s), total=160
+2026/03/06 22:12:45.869636 [graph] progress: 13/37 — aws_ecs_service
+2026/03/06 22:12:47.440570 [graph] scanned aws_ecs_service: 1 resource(s), total=161
+2026/03/06 22:12:47.440661 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/06 22:12:49.456120 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=361
+2026/03/06 22:12:49.456289 [graph] progress: 15/37 — aws_iam_role
+2026/03/06 22:13:04.933100 [graph] scanned aws_iam_role: 200 resource(s), total=561
+2026/03/06 22:13:04.933248 [graph] progress: 16/37 — aws_iam_policy
+2026/03/06 22:13:12.125554 [graph] scanned aws_iam_policy: 200 resource(s), total=761
+2026/03/06 22:13:12.125779 [graph] progress: 17/37 — aws_iam_user
+2026/03/06 22:13:14.665714 [graph] scanned aws_iam_user: 37 resource(s), total=798
+2026/03/06 22:13:14.690340 [graph] progress: 18/37 — aws_iam_group
+2026/03/06 22:13:15.828027 [graph] scanned aws_iam_group: 6 resource(s), total=804
+2026/03/06 22:13:15.828155 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/06 22:13:17.669349 [graph] scanned aws_iam_instance_profile: 23 resource(s), total=827
+2026/03/06 22:13:17.669462 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/06 22:13:27.091014 [graph] scanned aws_s3_bucket: 198 resource(s), total=1025
+2026/03/06 22:13:27.091197 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/06 22:13:31.536395 [graph] scanned aws_ebs_volume: 94 resource(s), total=1119
+2026/03/06 22:13:31.536506 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/06 22:13:32.982309 [graph] scanned aws_efs_file_system: 3 resource(s), total=1122
+2026/03/06 22:13:32.982561 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/06 22:13:34.323148 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1122
+2026/03/06 22:13:34.323207 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/06 22:13:34.670759 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1122
+2026/03/06 22:13:34.670888 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/06 22:13:37.191620 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1130
+2026/03/06 22:13:37.191655 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/06 22:13:38.528239 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1130
+2026/03/06 22:13:38.528303 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/06 22:13:40.316260 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1132
+2026/03/06 22:13:40.316641 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/06 22:13:41.495992 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1133
+2026/03/06 22:13:41.496133 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/06 22:13:43.166239 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1133
+2026/03/06 22:13:43.166355 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/06 22:13:44.173851 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1134
+2026/03/06 22:13:44.173943 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/06 22:13:45.128791 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1135
+2026/03/06 22:13:45.128855 [graph] progress: 32/37 — aws_route53_zone
+2026/03/06 22:13:48.436072 [graph] scanned aws_route53_zone: 3 resource(s), total=1138
+2026/03/06 22:13:48.436357 [graph] progress: 33/37 — aws_kms_key
+2026/03/06 22:13:50.100485 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: ListResourceTags, https response error StatusCode: 400, RequestID: 4e454dac-df17-49a2-a0a9-2a81fc97c088, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:ListResourceTags on resource: arn:aws:kms:eu-central-1:790543352839:key/5ff6b101-afb3-4c6d-9039-54471c788344 because no resource-based policy allows the kms:ListResourceTags action (HV000)
+2026/03/06 22:13:50.100507 [graph] progress: 34/37 — aws_sns_topic
+2026/03/06 22:13:52.564164 [graph] scanned aws_sns_topic: 5 resource(s), total=1143
+2026/03/06 22:13:52.564304 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/06 22:13:55.857792 [graph] scanned aws_sqs_queue: 19 resource(s), total=1162
+2026/03/06 22:13:55.857937 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/06 22:18:33.419131 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1362
+2026/03/06 22:18:33.419808 [graph] progress: 37/37 — done
+2026/03/06 22:18:33.797991 [graph] detected 1014 relationship(s) across 1362 node(s)
+2026/03/06 22:18:33.798027 [graph] build complete: 1362 nodes, 1014 edges
+2026/03/06 22:18:33.798118 [tui] graph built: 24 type(s), 1362 node(s), 1014 edge(s)
+2026/03/06 22:22:43.881630 [tui] step: BrowseResourceTypes → SelectResources (type="aws_iam_role")
+2026/03/06 22:22:49.811049 [tui] step: SelectResources → ConfirmGenerate (1 resource(s) selected)
+2026/03/06 22:22:54.343479 [tui] step: ConfirmGenerate → Generating
+2026/03/06 22:22:54.344245 [opencode] generateCode called: resources=1
+2026/03/06 22:22:54.344318 [opencode] setting up session with 1 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 22:22:54.562059 [opencode] created session id=ses_33beeffa8ffe1Swvo4R511z7nj title="terraclaw-terraform-generation"
+2026/03/06 22:22:54.562083 [opencode] session created: ses_33beeffa8ffe1Swvo4R511z7nj
+2026/03/06 22:22:54.683530 [opencode] injected system prompt into session ses_33beeffa8ffe1Swvo4R511z7nj (3730 bytes)
+2026/03/06 22:22:54.683594 [opencode] sending prompt async (2307 bytes)
+2026/03/06 22:22:54.683618 [tui] generation started, polling session ses_33beeffa8ffe1Swvo4R511z7nj
+2026/03/06 22:22:54.684488 [opencode] sending prompt to session ses_33beeffa8ffe1Swvo4R511z7nj (2307 bytes)
+2026/03/06 22:24:53.167115 [opencode] received response from session ses_33beeffa8ffe1Swvo4R511z7nj (1138 bytes)
+2026/03/06 22:24:53.898023 [opencode] prompt completed (err=<nil>)
+2026/03/06 22:24:53.907973 [opencode] found 5 generated file(s)
+2026/03/06 22:24:53.908067 [tui] step: Generating → ViewCode (5 files)
+2026/03/06 22:25:09.053255 [tui] step: ViewCode → ConfirmImport
+2026/03/06 22:25:11.003691 [tui] step: ConfirmImport → Importing
+2026/03/06 22:25:11.003800 [terraform] runImport called for 1 resource(s)
+2026/03/06 22:25:11.003834 [terraform] running import with bin=terraform outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/06 22:25:19.447838 [terraform] import complete: ✗ aws_iam_role.admin_task_state_change_handler_role_i0khmhd3: terraform import failed: exit status 1
+[31m[0m[1m[31mError:[0m[1m resource address "aws_iam_role.admin_task_state_change_handler_role_i0khmhd3" does not exist in the configuration.[0m
+
+Before importing this resource, please create its configuration in the root module. For example:
+
+resource "aws_iam_role" "admin_task_state_change_handler_role_i0khmhd3" {
+  # (resource arguments)
+}
+[0m[0m
+
+
+0 imported, 1 failed
+2026/03/06 22:25:19.448038 [tui] step: Importing → Done
+2026/03/06 22:25:54.754405 [opencode] stopping server (pid=72491)
+2026/03/17 19:55:37.645672 [debuglog] initialized — writing to terraclaw.log
+2026/03/17 19:55:37.646036 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/17 19:55:37.659637 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/17 19:55:37.659671 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/17 19:55:37.663132 [opencode] process started (pid=1328), waiting for server...
+2026/03/17 19:56:42.926860 [debuglog] initialized — writing to terraclaw.log
+2026/03/17 19:56:42.927163 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/17 19:56:42.935238 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/17 19:56:42.935258 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/17 19:56:42.936572 [opencode] process started (pid=1596), waiting for server...
+2026/03/17 19:57:13.024293 [opencode] stopping server (pid=1596)
+2026/03/17 19:57:49.326331 [debuglog] initialized — writing to terraclaw.log
+2026/03/17 19:57:49.326637 [startup] terraclaw starting — outputDir=./output opencodePort=4096
+2026/03/17 19:57:49.334207 [startup] copied skills from /Users/arunimchaudhary/Desktop/other/terraclaw/.agents/skills to /Users/arunimchaudhary/Desktop/other/terraclaw/output/.agents/skills
+2026/03/17 19:57:49.334327 [opencode] starting server on port 4096, cwd=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/17 19:57:49.335413 [opencode] process started (pid=2512), waiting for server...
+2026/03/17 19:57:49.644537 [opencode] server ready at http://127.0.0.1:4096
+2026/03/17 19:57:51.756046 [tui] step: SelectSchema → SelectScanMode (schema="aws")
+2026/03/17 19:57:53.536800 [tui] step: SelectScanMode → Scanning (mode="key")
+2026/03/17 19:57:53.537087 [graph] scanning 37 key tables for schema=aws
+2026/03/17 19:57:53.537640 [graph] progress: 0/37 — aws_vpc
+2026/03/17 19:57:57.697690 [graph] scanned aws_vpc: 5 resource(s), total=5
+2026/03/17 19:57:57.698032 [graph] progress: 1/37 — aws_subnet
+2026/03/17 19:57:57.699387 [graph] skipping table aws_subnet: fetch resources from aws.aws_subnet: pq: relation "aws.aws_subnet" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.699418 [graph] progress: 2/37 — aws_security_group
+2026/03/17 19:57:57.699647 [graph] skipping table aws_security_group: fetch resources from aws.aws_security_group: pq: relation "aws.aws_security_group" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.699671 [graph] progress: 3/37 — aws_internet_gateway
+2026/03/17 19:57:57.699901 [graph] skipping table aws_internet_gateway: fetch resources from aws.aws_internet_gateway: pq: relation "aws.aws_internet_gateway" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.699920 [graph] progress: 4/37 — aws_nat_gateway
+2026/03/17 19:57:57.700089 [graph] skipping table aws_nat_gateway: fetch resources from aws.aws_nat_gateway: pq: relation "aws.aws_nat_gateway" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.700098 [graph] progress: 5/37 — aws_route_table
+2026/03/17 19:57:57.700234 [graph] skipping table aws_route_table: fetch resources from aws.aws_route_table: pq: relation "aws.aws_route_table" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.700245 [graph] progress: 6/37 — aws_network_interface
+2026/03/17 19:57:57.700390 [graph] skipping table aws_network_interface: fetch resources from aws.aws_network_interface: pq: relation "aws.aws_network_interface" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.700406 [graph] progress: 7/37 — aws_eip
+2026/03/17 19:57:57.700578 [graph] skipping table aws_eip: fetch resources from aws.aws_eip: pq: relation "aws.aws_eip" does not exist at column 15 (42P01)
+2026/03/17 19:57:57.700585 [graph] progress: 8/37 — aws_ec2_instance
+2026/03/17 19:58:06.564832 [graph] scanned aws_ec2_instance: 74 resource(s), total=79
+2026/03/17 19:58:06.564894 [graph] progress: 9/37 — aws_ec2_launch_template
+2026/03/17 19:58:07.020164 [graph] scanned aws_ec2_launch_template: 13 resource(s), total=92
+2026/03/17 19:58:07.020241 [graph] progress: 10/37 — aws_autoscaling_group
+2026/03/17 19:58:07.021135 [graph] skipping table aws_autoscaling_group: fetch resources from aws.aws_autoscaling_group: pq: relation "aws.aws_autoscaling_group" does not exist at column 15 (42P01)
+2026/03/17 19:58:07.021163 [graph] progress: 11/37 — aws_lambda_function
+2026/03/17 19:58:15.280400 [graph] scanned aws_lambda_function: 69 resource(s), total=161
+2026/03/17 19:58:15.280662 [graph] progress: 12/37 — aws_ecs_cluster
+2026/03/17 19:58:17.554134 [graph] scanned aws_ecs_cluster: 4 resource(s), total=165
+2026/03/17 19:58:17.554217 [graph] progress: 13/37 — aws_ecs_service
+2026/03/17 19:58:19.058269 [graph] scanned aws_ecs_service: 1 resource(s), total=166
+2026/03/17 19:58:19.058355 [graph] progress: 14/37 — aws_ecs_task_definition
+2026/03/17 19:58:20.462432 [graph] scanned aws_ecs_task_definition: 200 resource(s), total=366
+2026/03/17 19:58:20.462700 [graph] progress: 15/37 — aws_iam_role
+2026/03/17 19:58:35.738414 [graph] scanned aws_iam_role: 200 resource(s), total=566
+2026/03/17 19:58:35.738762 [graph] progress: 16/37 — aws_iam_policy
+2026/03/17 19:58:42.377233 [graph] scanned aws_iam_policy: 200 resource(s), total=766
+2026/03/17 19:58:42.377569 [graph] progress: 17/37 — aws_iam_user
+2026/03/17 19:58:44.969923 [graph] scanned aws_iam_user: 37 resource(s), total=803
+2026/03/17 19:58:44.970033 [graph] progress: 18/37 — aws_iam_group
+2026/03/17 19:58:46.082999 [graph] scanned aws_iam_group: 6 resource(s), total=809
+2026/03/17 19:58:46.083096 [graph] progress: 19/37 — aws_iam_instance_profile
+2026/03/17 19:58:47.903916 [graph] scanned aws_iam_instance_profile: 24 resource(s), total=833
+2026/03/17 19:58:47.904122 [graph] progress: 20/37 — aws_s3_bucket
+2026/03/17 19:58:54.250410 [graph] scanned aws_s3_bucket: 199 resource(s), total=1032
+2026/03/17 19:58:54.250617 [graph] progress: 21/37 — aws_ebs_volume
+2026/03/17 19:58:56.532978 [graph] scanned aws_ebs_volume: 97 resource(s), total=1129
+2026/03/17 19:58:56.533056 [graph] progress: 22/37 — aws_efs_file_system
+2026/03/17 19:58:57.799470 [graph] scanned aws_efs_file_system: 3 resource(s), total=1132
+2026/03/17 19:58:57.799529 [graph] progress: 23/37 — aws_rds_db_instance
+2026/03/17 19:58:58.886007 [graph] scanned aws_rds_db_instance: 0 resource(s), total=1132
+2026/03/17 19:58:58.886122 [graph] progress: 24/37 — aws_rds_db_cluster
+2026/03/17 19:58:59.137927 [graph] scanned aws_rds_db_cluster: 0 resource(s), total=1132
+2026/03/17 19:58:59.138016 [graph] progress: 25/37 — aws_dynamodb_table
+2026/03/17 19:59:00.733003 [graph] scanned aws_dynamodb_table: 8 resource(s), total=1140
+2026/03/17 19:59:00.733273 [graph] progress: 26/37 — aws_elasticache_cluster
+2026/03/17 19:59:01.765439 [graph] scanned aws_elasticache_cluster: 0 resource(s), total=1140
+2026/03/17 19:59:01.765509 [graph] progress: 27/37 — aws_cognito_user_pool
+2026/03/17 19:59:03.357764 [graph] scanned aws_cognito_user_pool: 2 resource(s), total=1142
+2026/03/17 19:59:03.357832 [graph] progress: 28/37 — aws_cognito_identity_pool
+2026/03/17 19:59:04.383467 [graph] scanned aws_cognito_identity_pool: 1 resource(s), total=1143
+2026/03/17 19:59:04.383501 [graph] progress: 29/37 — aws_ec2_application_load_balancer
+2026/03/17 19:59:05.624544 [graph] scanned aws_ec2_application_load_balancer: 0 resource(s), total=1143
+2026/03/17 19:59:05.624747 [graph] progress: 30/37 — aws_ec2_network_load_balancer
+2026/03/17 19:59:06.626870 [graph] scanned aws_ec2_network_load_balancer: 1 resource(s), total=1144
+2026/03/17 19:59:06.626940 [graph] progress: 31/37 — aws_ec2_target_group
+2026/03/17 19:59:07.419880 [graph] scanned aws_ec2_target_group: 1 resource(s), total=1145
+2026/03/17 19:59:07.419930 [graph] progress: 32/37 — aws_route53_zone
+2026/03/17 19:59:10.299486 [graph] scanned aws_route53_zone: 3 resource(s), total=1148
+2026/03/17 19:59:10.299543 [graph] progress: 33/37 — aws_kms_key
+2026/03/17 19:59:11.781737 [graph] skipping table aws_kms_key: fetch resources from aws.aws_kms_key: pq: rpc error: code = Unknown desc = aws: operation error KMS: DescribeKey, https response error StatusCode: 400, RequestID: 479dcc6b-ffd3-498e-85c8-314d966ce9e6, api error AccessDeniedException: User: arn:aws:iam::790543352839:user/arunim.chaudhary@stackguardian.io is not authorized to perform: kms:DescribeKey on resource: arn:aws:kms:eu-central-1:790543352839:key/6bd59c0f-bb24-4352-b545-c43d3921d574 because no resource-based policy allows the kms:DescribeKey action (HV000)
+2026/03/17 19:59:11.781913 [graph] progress: 34/37 — aws_sns_topic
+2026/03/17 19:59:13.786075 [graph] scanned aws_sns_topic: 5 resource(s), total=1153
+2026/03/17 19:59:13.923352 [graph] progress: 35/37 — aws_sqs_queue
+2026/03/17 19:59:15.994130 [graph] scanned aws_sqs_queue: 20 resource(s), total=1173
+2026/03/17 19:59:15.994195 [graph] progress: 36/37 — aws_cloudwatch_log_group
+2026/03/17 20:03:43.665440 [graph] scanned aws_cloudwatch_log_group: 200 resource(s), total=1373
+2026/03/17 20:03:43.666631 [graph] progress: 37/37 — done
+2026/03/17 20:03:44.034092 [graph] detected 1031 relationship(s) across 1373 node(s)
+2026/03/17 20:03:44.034130 [graph] build complete: 1373 nodes, 1031 edges
+2026/03/17 20:03:44.034220 [tui] graph built: 24 type(s), 1373 node(s), 1031 edge(s)
+2026/03/17 20:58:19.527754 [tui] step: BrowseResourceTypes → SelectResources (type="aws_dynamodb_table")
+2026/03/17 20:58:27.125801 [tui] step: SelectResources → ConfirmGenerate (2 resource(s) selected)
+2026/03/17 20:58:29.111080 [tui] step: ConfirmGenerate → Generating
+2026/03/17 20:58:29.111358 [opencode] generateCode called: resources=2
+2026/03/17 20:58:29.111392 [opencode] setting up session with 2 resource(s), outputDir=/Users/arunimchaudhary/Desktop/other/terraclaw/output
+2026/03/17 20:58:29.175881 [opencode] created session id=ses_303965619ffeVysEd9zvBu7izM title="terraclaw-terraform-generation"
+2026/03/17 20:58:29.175918 [opencode] session created: ses_303965619ffeVysEd9zvBu7izM
+2026/03/17 20:58:29.281674 [opencode] injected system prompt into session ses_303965619ffeVysEd9zvBu7izM (5511 bytes)
+2026/03/17 20:58:29.281836 [opencode] sending stage 1 prompt async (9529 bytes)
+2026/03/17 20:58:29.281861 [tui] generation started, polling session ses_303965619ffeVysEd9zvBu7izM
+2026/03/17 20:58:29.281906 [opencode] sending prompt to session ses_303965619ffeVysEd9zvBu7izM (9529 bytes)
+2026/03/17 20:59:51.641906 [opencode] received response from session ses_303965619ffeVysEd9zvBu7izM (9179 bytes)
+2026/03/17 20:59:53.614564 [opencode] prompt completed (err=<nil>)
+2026/03/17 20:59:53.614692 [tui] stage 1 complete, transitioning to stage 2
+2026/03/17 20:59:53.616580 [opencode] blueprint persisted to /Users/arunimchaudhary/Desktop/other/terraclaw/output/blueprint.yaml
+2026/03/17 20:59:53.616960 [opencode] stage 2 prompt sent async for session ses_303965619ffeVysEd9zvBu7izM
+2026/03/17 20:59:53.616986 [tui] stage 2 started, polling session ses_303965619ffeVysEd9zvBu7izM
+2026/03/17 20:59:53.621153 [opencode] sending prompt to session ses_303965619ffeVysEd9zvBu7izM (13345 bytes)
+2026/03/17 21:05:44.347720 [opencode] received response from session ses_303965619ffeVysEd9zvBu7izM (862 bytes)
+2026/03/17 21:05:45.966327 [opencode] prompt completed (err=<nil>)
+2026/03/17 21:05:45.966386 [tui] stage 2 complete, scanning files
+2026/03/17 21:05:45.973026 [opencode] found 11 generated file(s)
+2026/03/17 21:05:45.973108 [tui] step: Generating → ViewCode (11 files)
+2026/03/17 21:11:04.895976 [tui] step: ViewCode → ConfirmImport
+2026/03/17 21:11:05.838456 [tui] step: ConfirmImport → Importing
+2026/03/17 21:11:05.838624 [terraform] runImport called for 2 resource(s)
+2026/03/17 21:11:05.838754 [terraform] found import.sh, running script
+2026/03/17 21:11:34.510361 [terraform] import.sh failed: import.sh failed: exit status 1
+[0m[1mInitializing the backend...[0m
+[0m[1mInitializing modules...[0m
+- dynamodb_table_marketplace_resources_qa_v1_beta in modules/dynamodb_table_marketplace_resources_qa_v1_beta
+- dynamodb_table_orchestrator_resources_qa_3 in modules/dynamodb_table_orchestrator_resources_qa_3
+[0m[1mInitializing provider plugins...[0m
+- Finding hashicorp/aws versions matching "~> 5.0"...
+- Installing hashicorp/aws v5.100.0...
+- Installed hashicorp/aws v5.100.0 (signed by HashiCorp)
+Terraform has created a lock file [1m.terraform.lock.hcl[0m to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.[0m
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
+Importing module.dynamodb_table_orchestrator_resources_qa_3.aws_dynamodb_table.this
+[0m[1mmodule.dynamodb_table_orchestrator_resources_qa_3.aws_dynamodb_table.this: Importing from ID "arn:aws:dynamodb:eu-central-1:790543352839:table/orchestrator-resources-qa-3"...[0m
+[0m[1m[32mmodule.dynamodb_table_orchestrator_resources_qa_3.aws_dynamodb_table.this: Import prepared![0m
+[0m[32m  Prepared aws_dynamodb_table for import[0m
+[0m[1mmodule.dynamodb_table_orchestrator_resources_qa_3.aws_dynamodb_table.this: Refreshing state... [id=arn:aws:dynamodb:eu-central-1:790543352839:table/orchestrator-resources-qa-3][0m
+[31m[31m╷[0m[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mreading AWS DynamoDB Table (arn:aws:dynamodb:eu-central-1:790543352839:table/orchestrator-resources-qa-3): describing Continuous Backups: operation error DynamoDB: DescribeContinuousBackups, https response error StatusCode: 400, RequestID: 8RNBV1B2V69O6MR09EN7PCL2JBVV4KQNSO5AEMVJF66Q9ASUAAJG, api error ValidationException: 1 validation error detected: Invalid AWS region in 'arn:aws:dynamodb:eu-central-1:790543352839:table/orchestrator-resources-qa-3'[0m
+[31m│[0m [0m
+[31m│[0m [0m[0m
+[31m╵[0m[0m
+[0m[0m
+2026/03/17 21:11:34.512177 [tui] step: Importing → Done
+2026/03/17 21:12:17.713412 [opencode] stopping server (pid=2512)

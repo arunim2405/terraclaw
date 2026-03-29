@@ -11,7 +11,7 @@ func TestLoadDefaults(t *testing.T) {
 	// Clear env to test defaults.
 	os.Unsetenv("STEAMPIPE_HOST")
 	os.Unsetenv("STEAMPIPE_PORT")
-	os.Unsetenv("LLM_PROVIDER")
+	os.Unsetenv("OPENCODE_PORT")
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -24,16 +24,15 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.SteampipePort != "9193" {
 		t.Errorf("SteampipePort = %q, want %q", cfg.SteampipePort, "9193")
 	}
-	if cfg.LLMProvider != config.ProviderOpenAI {
-		t.Errorf("LLMProvider = %q, want %q", cfg.LLMProvider, config.ProviderOpenAI)
+	if cfg.OpencodePort != 4096 {
+		t.Errorf("OpencodePort = %d, want %d", cfg.OpencodePort, 4096)
 	}
 }
 
 func TestLoadFromEnv(t *testing.T) {
 	t.Setenv("STEAMPIPE_HOST", "myhost")
 	t.Setenv("STEAMPIPE_PORT", "5432")
-	t.Setenv("LLM_PROVIDER", "claude")
-	t.Setenv("ANTHROPIC_API_KEY", "test-key")
+	t.Setenv("OPENCODE_PORT", "8080")
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -43,80 +42,17 @@ func TestLoadFromEnv(t *testing.T) {
 	if cfg.SteampipeHost != "myhost" {
 		t.Errorf("SteampipeHost = %q, want %q", cfg.SteampipeHost, "myhost")
 	}
-	if cfg.LLMProvider != config.ProviderClaude {
-		t.Errorf("LLMProvider = %q, want %q", cfg.LLMProvider, config.ProviderClaude)
+	if cfg.OpencodePort != 8080 {
+		t.Errorf("OpencodePort = %d, want %d", cfg.OpencodePort, 8080)
 	}
 }
 
 func TestValidate(t *testing.T) {
-	tests := []struct {
-		name    string
-		cfg     config.Config
-		wantErr bool
-	}{
-		{
-			name:    "openai without key",
-			cfg:     config.Config{LLMProvider: config.ProviderOpenAI},
-			wantErr: true,
-		},
-		{
-			name:    "openai with key",
-			cfg:     config.Config{LLMProvider: config.ProviderOpenAI, OpenAIAPIKey: "sk-test"},
-			wantErr: false,
-		},
-		{
-			name:    "claude without key",
-			cfg:     config.Config{LLMProvider: config.ProviderClaude},
-			wantErr: true,
-		},
-		{
-			name:    "claude with key",
-			cfg:     config.Config{LLMProvider: config.ProviderClaude, AnthropicAPIKey: "key"},
-			wantErr: false,
-		},
-		{
-			name:    "gemini without key",
-			cfg:     config.Config{LLMProvider: config.ProviderGemini},
-			wantErr: true,
-		},
-		{
-			name:    "gemini with key",
-			cfg:     config.Config{LLMProvider: config.ProviderGemini, GeminiAPIKey: "key"},
-			wantErr: false,
-		},
-		{
-			name:    "unknown provider",
-			cfg:     config.Config{LLMProvider: "unknown"},
-			wantErr: true,
-		},
-		{
-			name:    "azure-openai without key",
-			cfg:     config.Config{LLMProvider: config.ProviderAzureOpenAI, AzureOpenAIEndpoint: "https://example.openai.azure.com/"},
-			wantErr: true,
-		},
-		{
-			name:    "azure-openai without endpoint",
-			cfg:     config.Config{LLMProvider: config.ProviderAzureOpenAI, AzureOpenAIAPIKey: "key"},
-			wantErr: true,
-		},
-		{
-			name: "azure-openai with key and endpoint",
-			cfg: config.Config{
-				LLMProvider:         config.ProviderAzureOpenAI,
-				AzureOpenAIAPIKey:   "key",
-				AzureOpenAIEndpoint: "https://example.openai.azure.com/",
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.cfg.Validate()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+	// With OpenCode, Validate() always returns nil since the coding agent
+	// manages its own LLM provider configuration.
+	cfg := config.Config{}
+	if err := cfg.Validate(); err != nil {
+		t.Errorf("Validate() returned unexpected error: %v", err)
 	}
 }
 

@@ -158,3 +158,79 @@ func pickFirst(m map[string]string, keys ...string) string {
 	}
 	return ""
 }
+
+// FetchResourcesByARNs looks up specific resources by their ARNs across the
+// appropriate Steampipe tables. It uses the ARN service mapping to determine
+// which tables to query, avoiding a full scan.
+func (c *Client) FetchResourcesByARNs(schema string, arns []string) ([]Resource, error) {
+	var allResources []Resource
+
+	for _, arn := range arns {
+		tables := TableNamesForARN(arn)
+		if len(tables) == 0 {
+			return nil, fmt.Errorf("cannot determine Steampipe table for ARN: %s", arn)
+		}
+
+		found := false
+		for _, table := range tables {
+			query := fmt.Sprintf(
+				`SELECT * FROM %s.%s WHERE arn = $1 LIMIT 1`,
+				quoteIdent(schema), quoteIdent(table),
+			)
+			rows, err := c.db.Query(query, arn)
+			if err != nil {
+				// Table might not exist for this plugin installation; skip it.
+				continue
+			}
+
+			cols, err := rows.Columns()
+			if err != nil {
+				rows.Close()
+				continue
+			}
+
+			for rows.Next() {
+				rawValues := make([]interface{}, len(cols))
+				scanArgs := make([]interface{}, len(cols))
+				for i := range rawValues {
+					scanArgs[i] = &rawValues[i]
+				}
+				if err := rows.Scan(scanArgs...); err != nil {
+					rows.Close()
+					continue
+				}
+
+				props := make(map[string]string, len(cols))
+				for i, col := range cols {
+					if rawValues[i] != nil {
+						props[col] = fmt.Sprintf("%s", rawValues[i])
+					}
+				}
+
+				r := Resource{
+					Provider:   schema,
+					Service:    schema,
+					Type:       table,
+					Properties: props,
+				}
+				r.Name = pickFirst(props, "name", "title", "id", "arn")
+				r.ID = pickFirst(props, "id", "arn", "name", "title")
+				r.Region = pickFirst(props, "region", "location", "zone")
+
+				allResources = append(allResources, r)
+				found = true
+			}
+			rows.Close()
+
+			if found {
+				break // Found the resource in this table, no need to check others.
+			}
+		}
+
+		if !found {
+			return nil, fmt.Errorf("resource not found for ARN: %s", arn)
+		}
+	}
+
+	return allResources, nil
+}

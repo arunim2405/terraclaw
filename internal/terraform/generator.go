@@ -3,24 +3,13 @@ package terraform
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
 
-// WriteConfig writes the generated Terraform HCL code to a file in the output directory.
-func WriteConfig(outputDir, hcl string) (string, error) {
-	if err := os.MkdirAll(outputDir, 0o750); err != nil {
-		return "", fmt.Errorf("create output directory: %w", err)
-	}
-	path := filepath.Join(outputDir, "main.tf")
-	if err := os.WriteFile(path, []byte(hcl), 0o600); err != nil {
-		return "", fmt.Errorf("write terraform config: %w", err)
-	}
-	return path, nil
-}
+// NOTE: WriteConfig removed — OpenCode now creates .tf files directly in the output directory.
+// Use llm.ListGeneratedFiles(dir) to scan for generated files after OpenCode completes.
 
 // ImportCommand returns the terraform import command for a given resource.
 func ImportCommand(terraformBin string, resource steampipe.Resource, resourceAddr string) string {
