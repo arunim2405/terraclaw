@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/arunim2405/terraclaw/config"
+	"github.com/arunim2405/terraclaw/internal/cache"
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/opencode"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
@@ -42,6 +43,7 @@ func init() {
 	rootCmd.PersistentFlags().String("output-dir", "./output", "Directory to write generated Terraform files")
 	rootCmd.PersistentFlags().String("terraform-bin", "terraform", "Path to the terraform binary")
 	rootCmd.PersistentFlags().Bool("debug", false, "Enable debug logging to file (see DEBUG_LOG_FILE)")
+	rootCmd.PersistentFlags().Bool("no-cache", false, "Skip the resource cache and always rescan from Steampipe")
 }
 
 // runInteractive starts the BubbleTea TUI.
@@ -61,6 +63,9 @@ func runInteractive(cmd *cobra.Command, _ []string) error {
 	if v, _ := cmd.Flags().GetBool("debug"); v {
 		cfg.Debug = true
 	}
+	if v, _ := cmd.Flags().GetBool("no-cache"); v {
+		cfg.NoCache = true
+	}
 
 	// Initialise debug logger before anything else.
 	if cfg.Debug {
@@ -69,6 +74,22 @@ func runInteractive(cmd *cobra.Command, _ []string) error {
 		}
 		defer debuglog.Close()
 		debuglog.Log("[startup] terraclaw starting — outputDir=%s opencodePort=%d", cfg.OutputDir, cfg.OpencodePort)
+	}
+
+	// Open the cache store (unless --no-cache).
+	var cacheStore *cache.Store
+	if !cfg.NoCache {
+		var cacheErr error
+		cacheStore, cacheErr = cache.Open(cfg.CacheDBPath())
+		if cacheErr != nil {
+			debuglog.Log("[startup] warning: could not open cache: %v", cacheErr)
+			// Non-fatal — proceed without cache.
+		} else {
+			defer cacheStore.Close()
+			// Purge stale entries on startup.
+			_ = cacheStore.Purge(cfg.CacheTTL * 2)
+			debuglog.Log("[startup] cache opened at %s (TTL=%s)", cfg.CacheDBPath(), cfg.CacheTTL)
+		}
 	}
 
 	// Ensure the output directory exists and resolve it to an absolute path.
@@ -113,10 +134,11 @@ func runInteractive(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("no Steampipe plugin schemas found; install a plugin first:\n  steampipe plugin install aws")
 	}
 
-	// Wire up the TUI with the config, steampipe client, and opencode server.
+	// Wire up the TUI with the config, steampipe client, opencode server, and cache.
 	tui.SetConfig(cfg)
 	tui.SetSteampipeClient(spClient)
 	tui.SetOpencodeServer(ocServer)
+	tui.SetCacheStore(cacheStore)
 
 	model := tui.New(schemas)
 	p := tea.NewProgram(model, tea.WithAltScreen())

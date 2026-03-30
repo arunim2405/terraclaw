@@ -170,8 +170,42 @@ type MessageInfo struct {
 type MessagePart struct {
 	Type     string          `json:"type"`
 	Text     string          `json:"text,omitempty"`
-	ToolName string          `json:"toolName,omitempty"` // for tool-use parts
+	ToolName string          `json:"toolName,omitempty"` // for tool-use/tool-invocation parts
 	State    json.RawMessage `json:"state,omitempty"`    // can be object or string
+	Input    json.RawMessage `json:"input,omitempty"`    // tool input arguments
+	Output   json.RawMessage `json:"output,omitempty"`   // tool-result output
+}
+
+// IsThinking returns true if this part is a thinking/reasoning block.
+func (p MessagePart) IsThinking() bool {
+	return p.Type == "thinking" || p.Type == "reasoning"
+}
+
+// IsToolUse returns true if this part is a tool invocation.
+func (p MessagePart) IsToolUse() bool {
+	return p.Type == "tool-invocation" || p.Type == "tool-use"
+}
+
+// IsToolResult returns true if this part is a tool result.
+func (p MessagePart) IsToolResult() bool {
+	return p.Type == "tool-result"
+}
+
+// IsText returns true if this part is regular text output.
+func (p MessagePart) IsText() bool {
+	return p.Type == "text"
+}
+
+// OutputString returns the tool output as a string.
+func (p MessagePart) OutputString() string {
+	if len(p.Output) == 0 {
+		return ""
+	}
+	var s string
+	if json.Unmarshal(p.Output, &s) == nil {
+		return s
+	}
+	return string(p.Output)
 }
 
 // StateString returns a human-readable state from the raw JSON state field.
@@ -346,6 +380,49 @@ func (s *Server) ListMessages(sessionID string) ([]SessionMessage, error) {
 		return nil, fmt.Errorf("decode messages: %w", err)
 	}
 	return messages, nil
+}
+
+// ---------------------------------------------------------------------------
+// Message tracking for deduplication across polls
+// ---------------------------------------------------------------------------
+
+// MessageTracker tracks which message parts have already been processed
+// so that repeated polling does not re-display the same content.
+type MessageTracker struct {
+	// seenParts maps "messageID:partIndex" to true.
+	seenParts map[string]bool
+}
+
+// NewMessageTracker creates a new tracker.
+func NewMessageTracker() *MessageTracker {
+	return &MessageTracker{seenParts: make(map[string]bool)}
+}
+
+// NewParts returns only the message parts that haven't been seen before,
+// across all messages. It marks returned parts as seen. Each returned entry
+// includes the originating message role for context.
+func (t *MessageTracker) NewParts(messages []SessionMessage) []TrackedPart {
+	var result []TrackedPart
+	for _, msg := range messages {
+		for i, part := range msg.Parts {
+			key := fmt.Sprintf("%s:%d", msg.Info.ID, i)
+			if t.seenParts[key] {
+				continue
+			}
+			t.seenParts[key] = true
+			result = append(result, TrackedPart{
+				Role: msg.Info.Role,
+				Part: part,
+			})
+		}
+	}
+	return result
+}
+
+// TrackedPart pairs a message part with its originating role.
+type TrackedPart struct {
+	Role string
+	Part MessagePart
 }
 
 // PromptAsync sends a prompt in a background goroutine and returns

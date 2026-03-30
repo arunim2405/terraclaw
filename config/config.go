@@ -4,7 +4,9 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -30,6 +32,11 @@ type Config struct {
 	// Resource scanning
 	ScanTables string // comma-separated table names, or "*" for all, or empty for key resources
 
+	// Cache
+	CacheDir string        // directory for SQLite cache DB
+	CacheTTL time.Duration // how long cached scans remain valid
+	NoCache  bool          // if true, skip cache entirely
+
 	// Debug
 	Debug        bool
 	DebugLogFile string
@@ -47,6 +54,16 @@ func Load() (*Config, error) {
 		}
 	}
 
+	cacheTTL := 1 * time.Hour
+	if v := os.Getenv("CACHE_TTL"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil {
+			cacheTTL = d
+		}
+	}
+
+	homeDir, _ := os.UserHomeDir()
+	defaultCacheDir := filepath.Join(homeDir, ".cache", "terraclaw")
+
 	cfg := &Config{
 		SteampipeHost:     envOrDefault("STEAMPIPE_HOST", "localhost"),
 		SteampipePort:     envOrDefault("STEAMPIPE_PORT", "9193"),
@@ -57,6 +74,9 @@ func Load() (*Config, error) {
 		TerraformBin:      envOrDefault("TERRAFORM_BIN", "terraform"),
 		OutputDir:         envOrDefault("OUTPUT_DIR", "./output"),
 		ScanTables:        os.Getenv("SCAN_TABLES"),
+		CacheDir:          envOrDefault("CACHE_DIR", defaultCacheDir),
+		CacheTTL:          cacheTTL,
+		NoCache:           os.Getenv("NO_CACHE") == "true" || os.Getenv("NO_CACHE") == "1",
 		Debug:             os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1",
 		DebugLogFile:      envOrDefault("DEBUG_LOG_FILE", "terraclaw.log"),
 	}
@@ -77,6 +97,11 @@ func (c *Config) SteampipeConnStr() string {
 		"host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
 		c.SteampipeHost, c.SteampipePort, c.SteampipeDB, c.SteampipeUser, c.SteampipePassword,
 	)
+}
+
+// CacheDBPath returns the full path to the SQLite cache database.
+func (c *Config) CacheDBPath() string {
+	return filepath.Join(c.CacheDir, "findings.db")
 }
 
 func envOrDefault(key, def string) string {

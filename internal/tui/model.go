@@ -3,11 +3,13 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/arunim2405/terraclaw/internal/cache"
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
@@ -21,6 +23,8 @@ type Step int
 const (
 	StepSelectSchema        Step = iota // Choose cloud provider / Steampipe schema
 	StepSelectScanMode                  // Choose "Key Resources" or "All Resources"
+	StepCheckingCache                   // Checking for cached scan results
+	StepCacheChoice                     // Choose cached resources or fresh scan
 	StepScanning                        // Scanning tables / building graph (progress)
 	StepBrowseResourceTypes             // Browse discovered resource types
 	StepSelectResources                 // Select individual resources (with related expansion)
@@ -74,6 +78,9 @@ type Model struct {
 	selectedSchema   string
 	selectedScanMode string // "key" or "all"
 
+	// Cache info for the current schema+scanMode (nil if no cache).
+	cachedScan *cache.ScanInfo
+
 	// Resource graph.
 	resourceGraph *graph.Graph
 
@@ -109,6 +116,7 @@ type Model struct {
 	agentStatus     string
 	activeSessionID string
 	activeResultCh  <-chan opencode.PromptResult
+	messageTracker  *opencode.MessageTracker
 
 	// Pipeline stage tracking (1 = blueprint, 2 = terraform, 3 = import).
 	generationStage int
@@ -130,22 +138,39 @@ type asyncResult struct {
 // New creates the initial BubbleTea model.
 // Code generation is handled by the OpenCode coding agent.
 func New(schemas []string) Model {
-	l := buildSchemaList(schemas)
+	// Use sensible defaults; real dimensions arrive via tea.WindowSizeMsg.
+	w, h := 80, 24
+	l := buildSchemaList(schemas, w, h)
 
 	return Model{
 		step:    StepSelectSchema,
 		list:    l,
 		schemas: schemas,
-		width:   80,
-		height:  24,
+		width:   w,
+		height:  h,
 	}
 }
 
-// newList creates a bubbletea list with sensible defaults.
-func newList(items []list.Item, title string, height int) list.Model {
-	if height == 0 {
-		height = 14
+// newList creates a bubbletea list sized to the terminal.
+// termWidth and termHeight are the current terminal dimensions.
+// minHeight overrides the computed height when non-zero (used for short lists
+// like confirm dialogs where we don't want to fill the whole screen).
+func newList(items []list.Item, title string, termWidth, termHeight, minHeight int) list.Model {
+	w := termWidth - 4
+	if w < 40 {
+		w = 40
 	}
+	// Reserve lines for title, help bar, padding.
+	h := termHeight - 8
+	if h < 8 {
+		h = 8
+	}
+	// For short fixed lists (confirm, cache choice), cap at a small height
+	// so the list doesn't look stretched.
+	if minHeight > 0 && h > minHeight {
+		h = minHeight
+	}
+
 	delegate := list.NewDefaultDelegate()
 	delegate.Styles.SelectedTitle = delegate.Styles.SelectedTitle.
 		Foreground(lipgloss.Color("#AD58B4")).
@@ -153,7 +178,7 @@ func newList(items []list.Item, title string, height int) list.Model {
 	delegate.Styles.SelectedDesc = delegate.Styles.SelectedDesc.
 		Foreground(lipgloss.Color("#AD58B4"))
 
-	l := list.New(items, delegate, 76, height)
+	l := list.New(items, delegate, w, h)
 	l.Title = title
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true)
@@ -175,8 +200,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		m.list.SetWidth(msg.Width - 4)
-		m.list.SetHeight(msg.Height - 8)
+		w := msg.Width - 4
+		if w < 40 {
+			w = 40
+		}
+		h := msg.Height - 8
+		if h < 8 {
+			h = 8
+		}
+		m.list.SetWidth(w)
+		m.list.SetHeight(h)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -193,6 +226,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.scanProgress = msg.message
 		return m, nil
 
+	case cacheCheckMsg:
+		return m.handleCacheCheck(msg)
+
+	case cacheLoadedMsg:
+		if msg.err != nil {
+			// Cache load failed — fall back to live scan.
+			debuglog.Log("[tui] cache load failed: %v, falling back to scan", msg.err)
+			m.scanProgress = "Cache load failed, scanning..."
+			return m, scanResourcesCmd(m.selectedSchema, m.selectedScanMode)
+		}
+		return m.handleGraphBuilt(graphBuiltMsg{graph: msg.graph})
+
 	case graphBuiltMsg:
 		return m.handleGraphBuilt(msg)
 
@@ -202,14 +247,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.activeResultCh = msg.resultCh
 		m.agentStatus = "Agent is starting..."
 		m.generationStage = 1
+		m.messageTracker = opencode.NewMessageTracker()
 		debuglog.Log("[tui] generation started, polling session %s", msg.sessionID)
-		return m, tea.Batch(tickCmd(), pollAgentStatusCmd(msg.sessionID, msg.resultCh))
+		return m, tea.Batch(tickCmd(), pollAgentStatusCmd(msg.sessionID, msg.resultCh, m.messageTracker))
 
 	case agentStatusMsg:
 		// Update agent status display and continue polling.
 		m.agentStatus = msg.status
 		if m.activeSessionID != "" && m.activeResultCh != nil {
-			return m, pollAgentStatusCmd(m.activeSessionID, m.activeResultCh)
+			return m, pollAgentStatusCmd(m.activeSessionID, m.activeResultCh, m.messageTracker)
 		}
 		return m, nil
 
@@ -235,6 +281,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeResultCh = nil
 			m.agentStatus = ""
 			m.generationStage = 0
+			m.step = StepDone
 			return m, nil
 		}
 		if m.generationStage == 1 {
@@ -290,7 +337,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.activeResultCh = msg.resultCh
 		m.agentStatus = "Stage 2: Generating Terraform Code..."
 		debuglog.Log("[tui] stage 2 started, polling session %s", m.activeSessionID)
-		return m, pollAgentStatusCmd(m.activeSessionID, msg.resultCh)
+		return m, pollAgentStatusCmd(m.activeSessionID, msg.resultCh, m.messageTracker)
 
 	case stage3StartedMsg:
 		m.generationStage = 3
@@ -300,7 +347,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			msg.iteration, llm.MaxRefinementIterations)
 		debuglog.Log("[tui] stage 3 started (iteration %d), polling session %s",
 			msg.iteration, m.activeSessionID)
-		return m, pollAgentStatusCmd(m.activeSessionID, msg.resultCh)
+		return m, pollAgentStatusCmd(m.activeSessionID, msg.resultCh, m.messageTracker)
 
 	case importFinishedMsg:
 		m.activeSessionID = ""
@@ -330,6 +377,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.err = msg.err
 			m.activeSessionID = "" // Clear on error — nothing to import.
 			debuglog.Log("[tui] generation error: %v", msg.err)
+			m.step = StepDone
 			return m, nil
 		}
 		debuglog.Log("[tui] step: Generating → ViewCode (%d files)", len(msg.files))
@@ -356,7 +404,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) isListStep() bool {
 	switch m.step {
-	case StepSelectSchema, StepSelectScanMode, StepBrowseResourceTypes,
+	case StepSelectSchema, StepSelectScanMode, StepCacheChoice, StepBrowseResourceTypes,
 		StepSelectResources, StepConfirmGenerate, StepConfirmImport:
 		return true
 	}
@@ -434,19 +482,22 @@ func (m Model) goBack() (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	case StepSelectScanMode:
 		m.step = StepSelectSchema
-		m.list = buildSchemaList(m.schemas)
+		m.list = buildSchemaList(m.schemas, m.width, m.height)
+	case StepCacheChoice:
+		m.step = StepSelectScanMode
+		m.list = buildScanModeList(m.width, m.height)
 	case StepBrowseResourceTypes:
 		m.step = StepSelectScanMode
-		m.list = buildScanModeList()
+		m.list = buildScanModeList(m.width, m.height)
 	case StepSelectResources:
 		m.step = StepBrowseResourceTypes
-		m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph)
+		m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph, m.width, m.height)
 	case StepConfirmGenerate:
 		m.step = StepBrowseResourceTypes
-		m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph)
+		m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph, m.width, m.height)
 	case StepViewCode:
 		m.step = StepConfirmGenerate
-		m.list = buildConfirmList("Generate Terraform code for selected resources?")
+		m.list = buildConfirmList("Generate Terraform code for selected resources?", m.width, m.height)
 	}
 	return m, nil
 }
@@ -458,7 +509,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			debuglog.Log("[tui] step: SelectSchema → SelectScanMode (schema=%q)", item.title)
 			m.selectedSchema = item.title
 			m.step = StepSelectScanMode
-			m.list = buildScanModeList()
+			m.list = buildScanModeList(m.width, m.height)
 		}
 
 	case StepSelectScanMode:
@@ -469,10 +520,27 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			case "All Resources":
 				m.selectedScanMode = "all"
 			}
-			debuglog.Log("[tui] step: SelectScanMode → Scanning (mode=%q)", m.selectedScanMode)
-			m.step = StepScanning
-			m.scanProgress = "Starting scan..."
-			return m, tea.Batch(tickCmd(), scanResourcesCmd(m.selectedSchema, m.selectedScanMode))
+			// Check cache before scanning.
+			debuglog.Log("[tui] step: SelectScanMode → CheckingCache (mode=%q)", m.selectedScanMode)
+			m.step = StepCheckingCache
+			return m, tea.Batch(tickCmd(), checkCacheCmd(m.selectedSchema, m.selectedScanMode))
+		}
+
+	case StepCacheChoice:
+		if item, ok := m.list.SelectedItem().(listItem); ok {
+			switch item.title {
+			case "Use Cached Resources":
+				debuglog.Log("[tui] step: CacheChoice → loading from cache (scanID=%d)", m.cachedScan.ID)
+				m.step = StepScanning
+				m.scanProgress = "Loading resources from cache..."
+				return m, tea.Batch(tickCmd(), loadCacheCmd(m.cachedScan.ID))
+			case "Rescan from Cloud":
+				debuglog.Log("[tui] step: CacheChoice → Scanning (fresh)")
+				m.cachedScan = nil
+				m.step = StepScanning
+				m.scanProgress = "Starting scan..."
+				return m, tea.Batch(tickCmd(), scanResourcesCmd(m.selectedSchema, m.selectedScanMode))
+			}
 		}
 
 	case StepBrowseResourceTypes:
@@ -482,7 +550,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			m.selectedType = resourceType
 			m.resources = buildResourceItems(m.resourceGraph, resourceType)
 			m.step = StepSelectResources
-			m.list = buildResourceList(m.resources, resourceType)
+			m.list = buildResourceList(m.resources, resourceType, m.width, m.height)
 		}
 
 	case StepSelectResources:
@@ -497,7 +565,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		debuglog.Log("[tui] step: SelectResources → ConfirmGenerate (%d resource(s) selected)", len(m.selectedResources))
 		m.step = StepConfirmGenerate
 		m.cliCommand = buildCLICommand(m.selectedResources, m.selectedSchema)
-		m.list = buildConfirmList(fmt.Sprintf("Generate Terraform code for %d selected resource(s)?", len(m.selectedResources)))
+		m.list = buildConfirmList(fmt.Sprintf("Generate Terraform code for %d selected resource(s)?", len(m.selectedResources)), m.width, m.height)
 
 	case StepConfirmGenerate:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
@@ -513,7 +581,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 	case StepViewCode:
 		debuglog.Log("[tui] step: ViewCode → ConfirmImport")
 		m.step = StepConfirmImport
-		m.list = buildConfirmList("Run terraform import for selected resources?")
+		m.list = buildConfirmList("Run terraform import for selected resources?", m.width, m.height)
 
 	case StepConfirmImport:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
@@ -638,6 +706,25 @@ func (m Model) expandRelated() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m Model) handleCacheCheck(msg cacheCheckMsg) (tea.Model, tea.Cmd) {
+	if msg.scanInfo == nil {
+		// No valid cache — go straight to scanning.
+		debuglog.Log("[tui] no cache hit, proceeding to scan")
+		m.step = StepScanning
+		m.scanProgress = "Starting scan..."
+		return m, tea.Batch(tickCmd(), scanResourcesCmd(m.selectedSchema, m.selectedScanMode))
+	}
+
+	// Valid cache found — show choice to user.
+	m.cachedScan = msg.scanInfo
+	m.step = StepCacheChoice
+	m.list = buildCacheChoiceList(msg.scanInfo, m.width, m.height)
+	debuglog.Log("[tui] cache hit: scan_id=%d, resources=%d, age=%s",
+		msg.scanInfo.ID, msg.scanInfo.Stats.ResourceCount,
+		time.Since(msg.scanInfo.FinishedAt).Round(time.Second))
+	return m, nil
+}
+
 func (m Model) handleGraphBuilt(msg graphBuiltMsg) (tea.Model, tea.Cmd) {
 	if msg.err != nil {
 		m.err = msg.err
@@ -651,7 +738,7 @@ func (m Model) handleGraphBuilt(msg graphBuiltMsg) (tea.Model, tea.Cmd) {
 		len(m.resourceTypes), msg.graph.Stats.ResourceCount, msg.graph.Stats.EdgeCount)
 
 	m.step = StepBrowseResourceTypes
-	m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph)
+	m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph, m.width, m.height)
 	return m, nil
 }
 
@@ -677,9 +764,12 @@ func (m Model) handleAsyncResult(res asyncResult) (tea.Model, tea.Cmd) {
 // View implements tea.Model.
 func (m Model) View() string {
 	switch m.step {
-	case StepSelectSchema, StepSelectScanMode, StepBrowseResourceTypes,
+	case StepSelectSchema, StepSelectScanMode, StepCacheChoice, StepBrowseResourceTypes,
 		StepSelectResources, StepConfirmGenerate, StepConfirmImport:
 		return m.listView()
+
+	case StepCheckingCache:
+		return m.loadingView("Checking for cached resources...")
 
 	case StepScanning:
 		return m.scanView()
@@ -771,6 +861,12 @@ func (m Model) generatingView() string {
 			status = status[:maxWidth-3] + "..."
 		}
 		sb.WriteString(fmt.Sprintf("  %s\n", subtleStyle.Render(status)))
+	}
+
+	if m.err != nil {
+		sb.WriteString("\n")
+		sb.WriteString(errorStyle.Render("  Error: " + m.err.Error()))
+		sb.WriteString("\n")
 	}
 
 	sb.WriteString("\n")
@@ -887,15 +983,15 @@ func (m Model) doneView() string {
 // Helper builders
 // ---------------------------------------------------------------------------
 
-func buildSchemaList(schemas []string) list.Model {
+func buildSchemaList(schemas []string, w, h int) list.Model {
 	items := make([]list.Item, len(schemas))
 	for i, s := range schemas {
 		items[i] = listItem{title: s, desc: "Steampipe plugin schema"}
 	}
-	return newList(items, "Select Cloud Provider", 0)
+	return newList(items, "Select Cloud Provider", w, h, 0)
 }
 
-func buildScanModeList() list.Model {
+func buildScanModeList(w, h int) list.Model {
 	items := []list.Item{
 		listItem{
 			title: "Key Resources (Recommended)",
@@ -906,10 +1002,10 @@ func buildScanModeList() list.Model {
 			desc:  "Scan ALL resource types (may take several minutes)",
 		},
 	}
-	return newList(items, "Select Scan Mode", 6)
+	return newList(items, "Select Scan Mode", w, h, 8)
 }
 
-func buildResourceTypeList(types []string, g *graph.Graph) list.Model {
+func buildResourceTypeList(types []string, g *graph.Graph, w, h int) list.Model {
 	items := make([]list.Item, len(types))
 	for i, t := range types {
 		nodes := g.NodesByType(t)
@@ -918,10 +1014,10 @@ func buildResourceTypeList(types []string, g *graph.Graph) list.Model {
 			desc:  fmt.Sprintf("%d resource(s) discovered", len(nodes)),
 		}
 	}
-	return newList(items, "Select Resource Type", 0)
+	return newList(items, "Select Resource Type", w, h, 0)
 }
 
-func buildResourceList(resources []ResourceItem, resourceType string) list.Model {
+func buildResourceList(resources []ResourceItem, resourceType string, w, h int) list.Model {
 	items := make([]list.Item, len(resources))
 	for i, r := range resources {
 		prefix := "  "
@@ -933,7 +1029,7 @@ func buildResourceList(resources []ResourceItem, resourceType string) list.Model
 			desc:  r.Resource.String(),
 		}
 	}
-	return newList(items, fmt.Sprintf("Select Resources (%s)", resourceType), 0)
+	return newList(items, fmt.Sprintf("Select Resources (%s)", resourceType), w, h, 0)
 }
 
 func buildResourceItems(g *graph.Graph, resourceType string) []ResourceItem {
@@ -957,12 +1053,42 @@ func buildResourceItems(g *graph.Graph, resourceType string) []ResourceItem {
 	return items
 }
 
-func buildConfirmList(question string) list.Model {
+func buildCacheChoiceList(info *cache.ScanInfo, w, h int) list.Model {
+	age := time.Since(info.FinishedAt).Round(time.Second)
+	items := []list.Item{
+		listItem{
+			title: "Use Cached Resources",
+			desc:  fmt.Sprintf("Cached %s ago — %d resources, %d edges", formatDuration(age), info.Stats.ResourceCount, info.Stats.EdgeCount),
+		},
+		listItem{
+			title: "Rescan from Cloud",
+			desc:  "Discard cache and scan live resources from Steampipe",
+		},
+	}
+	return newList(items, "Cached scan found", w, h, 8)
+}
+
+// formatDuration returns a human-friendly duration string.
+func formatDuration(d time.Duration) string {
+	if d < time.Minute {
+		return fmt.Sprintf("%d seconds", int(d.Seconds()))
+	}
+	if d < time.Hour {
+		return fmt.Sprintf("%d minutes", int(d.Minutes()))
+	}
+	hours := int(d.Hours())
+	if hours < 24 {
+		return fmt.Sprintf("%d hours", hours)
+	}
+	return fmt.Sprintf("%d days", hours/24)
+}
+
+func buildConfirmList(question string, w, h int) list.Model {
 	items := []list.Item{
 		listItem{title: "Yes", desc: "Proceed"},
 		listItem{title: "No", desc: "Cancel"},
 	}
-	return newList(items, question, 4)
+	return newList(items, question, w, h, 6)
 }
 
 // buildCLICommand constructs the equivalent `terraclaw generate --resources` command

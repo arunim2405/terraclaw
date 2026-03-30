@@ -714,6 +714,8 @@ module "s3_bucket" {
     e.g., module.s3_bucket["data-bucket"].aws_s3_bucket.this[0]
 - Echo progress before each import
 - CRITICAL: resource addresses must exactly match the module structure and internal paths
+- CRITICAL: import.sh must ONLY contain terraform init and terraform import commands.
+  NEVER include terraform apply, terraform destroy, or any command that modifies cloud resources.
 
 ## Cross-Module References
 - Wire module outputs to inputs per root.wiring
@@ -889,8 +891,24 @@ When an import fails:
   (e.g., aws_s3_bucket_versioning instead of inline versioning {})
 - Wrong import ID format (ARN vs name vs ID varies by resource type)
 
-### CRITICAL:
-- Fix ALL errors — don't just report them
+### CRITICAL SAFETY RULES — READ BEFORE ANY ACTION:
+- **NEVER run ` + "`terraform apply`" + `** — this modifies cloud resources. ABSOLUTELY FORBIDDEN.
+- **NEVER run ` + "`terraform destroy`" + `** — this deletes cloud resources. ABSOLUTELY FORBIDDEN.
+- **NEVER run ` + "`terraform apply -auto-approve`" + `** or any apply variant. FORBIDDEN.
+- **NEVER pass ` + "`-auto-approve`" + `** to any terraform command.
+- The ONLY terraform commands you may execute are:
+  - ` + "`terraform init`" + ` (safe — downloads providers/modules)
+  - ` + "`terraform import <address> <id>`" + ` (safe — adds to state without modifying cloud)
+  - ` + "`terraform plan`" + ` (safe — read-only drift check)
+  - ` + "`terraform state list`" + ` (safe — read-only state inspection)
+  - ` + "`terraform state show <address>`" + ` (safe — read-only state inspection)
+- If ` + "`terraform plan`" + ` shows changes, that means the HCL does not match the live cloud
+  config. Fix the **Terraform code** to match the cloud — NEVER apply changes to the cloud.
+  The purpose of this stage is to bring existing cloud resources under Terraform management
+  without modifying them in any way.
+
+### ADDITIONAL RULES:
+- Fix ALL import errors — don't just report them
 - After every fix, re-run the import to verify
 - Use AWS CLI for actual config — never guess
 - Goal: ` + "`terraform plan`" + ` shows zero drift after all imports
@@ -954,6 +972,14 @@ terraform import <address> <id> # only resources not yet in state
 terraform plan                  # should show zero changes
 ` + "```" + `
 If plan shows drift, fix the attributes that differ and re-plan.
+
+## CRITICAL SAFETY RULES — READ BEFORE ANY ACTION:
+- **NEVER run ` + "`terraform apply`" + `** — this modifies cloud resources. ABSOLUTELY FORBIDDEN.
+- **NEVER run ` + "`terraform destroy`" + `** — this deletes cloud resources. ABSOLUTELY FORBIDDEN.
+- **NEVER pass ` + "`-auto-approve`" + `** to any terraform command.
+- The ONLY terraform commands you may execute are:
+  ` + "`terraform init`" + `, ` + "`terraform import`" + `, ` + "`terraform plan`" + `, ` + "`terraform state list`" + `, ` + "`terraform state show`" + `
+- If ` + "`terraform plan`" + ` shows changes, fix the **Terraform code** to match the cloud — NEVER apply changes to the cloud.
 
 ## Key Principles
 - ` + "`terraform state list`" + ` before importing — never re-import what's already in state

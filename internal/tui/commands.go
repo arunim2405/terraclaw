@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/arunim2405/terraclaw/config"
+	"github.com/arunim2405/terraclaw/internal/cache"
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
@@ -25,6 +26,9 @@ var steampipeClient *steampipe.Client
 // opencodeServer is the shared OpenCode server used by commands.
 var opencodeServer *opencode.Server
 
+// cacheStore is the shared cache store for persisting scan results.
+var cacheStore *cache.Store
+
 // SetConfig stores the application config for use by TUI commands.
 func SetConfig(cfg *config.Config) { appConfig = cfg }
 
@@ -33,6 +37,9 @@ func SetSteampipeClient(c *steampipe.Client) { steampipeClient = c }
 
 // SetOpencodeServer stores the OpenCode server for use by TUI commands.
 func SetOpencodeServer(s *opencode.Server) { opencodeServer = s }
+
+// SetCacheStore stores the cache store for use by TUI commands.
+func SetCacheStore(s *cache.Store) { cacheStore = s }
 
 // ---------------------------------------------------------------------------
 // Messages
@@ -102,9 +109,70 @@ type importFinishedMsg struct {
 	err     error
 }
 
+// cacheCheckMsg carries the result of checking for a cached scan.
+type cacheCheckMsg struct {
+	scanInfo *cache.ScanInfo // nil if no valid cache found
+}
+
+// cacheLoadedMsg carries a graph loaded from cache.
+type cacheLoadedMsg struct {
+	graph *graph.Graph
+	err   error
+}
+
 // ---------------------------------------------------------------------------
 // Commands
 // ---------------------------------------------------------------------------
+
+// checkCacheCmd checks if a valid cached scan exists for the given schema and scan mode.
+func checkCacheCmd(schema, scanMode string) tea.Cmd {
+	return func() tea.Msg {
+		if cacheStore == nil || appConfig == nil || appConfig.NoCache {
+			return cacheCheckMsg{scanInfo: nil}
+		}
+
+		info, err := cacheStore.LatestScan(schema, scanMode)
+		if err != nil {
+			debuglog.Log("[cache] error checking cache: %v", err)
+			return cacheCheckMsg{scanInfo: nil}
+		}
+
+		if info == nil {
+			debuglog.Log("[cache] no cached scan found for schema=%s mode=%s", schema, scanMode)
+			return cacheCheckMsg{scanInfo: nil}
+		}
+
+		// Check TTL.
+		age := time.Since(info.FinishedAt)
+		if age > appConfig.CacheTTL {
+			debuglog.Log("[cache] cached scan expired (age=%s, ttl=%s)", age, appConfig.CacheTTL)
+			return cacheCheckMsg{scanInfo: nil}
+		}
+
+		debuglog.Log("[cache] valid cached scan found: id=%d, age=%s, resources=%d",
+			info.ID, age.Round(time.Second), info.Stats.ResourceCount)
+		return cacheCheckMsg{scanInfo: info}
+	}
+}
+
+// loadCacheCmd loads a graph from a cached scan.
+func loadCacheCmd(scanID int64) tea.Cmd {
+	return func() tea.Msg {
+		if cacheStore == nil {
+			return cacheLoadedMsg{err: fmt.Errorf("cache store not available")}
+		}
+
+		g, err := cacheStore.LoadGraph(scanID)
+		if err != nil {
+			debuglog.Log("[cache] error loading cached graph: %v", err)
+			return cacheLoadedMsg{err: err}
+		}
+
+		debuglog.Log("[cache] loaded graph from cache: %d nodes, %d edges",
+			g.Stats.ResourceCount, g.Stats.EdgeCount)
+		return cacheLoadedMsg{graph: g}
+	}
+}
 
 // tickCmd returns a command that sends a spinnerTickMsg after a short delay.
 func tickCmd() tea.Cmd {
@@ -151,6 +219,15 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 		// Detect relationships between resources.
 		g.DetectRelationships()
 		debuglog.Log("[graph] build complete: %d nodes, %d edges", g.Stats.ResourceCount, g.Stats.EdgeCount)
+
+		// Save to cache.
+		if cacheStore != nil && !appConfig.NoCache {
+			if err := cacheStore.SaveGraph(schema, scanMode, tables, g); err != nil {
+				debuglog.Log("[cache] warning: failed to save scan to cache: %v", err)
+			} else {
+				debuglog.Log("[cache] scan saved to cache for schema=%s mode=%s", schema, scanMode)
+			}
+		}
 
 		return graphBuiltMsg{graph: g}
 	}
@@ -206,7 +283,7 @@ func generateCodeCmd(resources []ResourceItem) tea.Cmd {
 }
 
 // pollAgentStatusCmd polls OpenCode for session messages and checks if the current prompt is done.
-func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult) tea.Cmd {
+func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult, tracker *opencode.MessageTracker) tea.Cmd {
 	return func() tea.Msg {
 		// First check if the prompt has completed.
 		select {
@@ -226,7 +303,21 @@ func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult)
 			return agentStatusMsg{status: "Generating..."}
 		}
 
-		status := extractAgentStatus(messages)
+		// Log new parts via the tracker.
+		status := "Agent is thinking..."
+		if tracker != nil {
+			newParts := tracker.NewParts(messages)
+			for _, tp := range newParts {
+				if tp.Role != "assistant" {
+					continue
+				}
+				logMessagePart(tp.Part)
+			}
+			status = extractLatestStatus(messages)
+		} else {
+			status = extractLatestStatus(messages)
+		}
+
 		time.Sleep(2 * time.Second)
 		return agentStatusMsg{status: status}
 	}
@@ -312,8 +403,41 @@ func scanAndFinishImportCmd(results string) tea.Cmd {
 	}
 }
 
-// extractAgentStatus summarizes the latest agent activity from session messages.
-func extractAgentStatus(messages []opencode.SessionMessage) string {
+// logMessagePart logs a single message part to the debug log with full content.
+func logMessagePart(part opencode.MessagePart) {
+	switch {
+	case part.IsThinking():
+		text := strings.TrimSpace(part.Text)
+		if text != "" {
+			debuglog.Log("[agent:thinking] %s", text)
+		}
+	case part.IsText():
+		text := strings.TrimSpace(part.Text)
+		if text != "" {
+			debuglog.Log("[agent:text] %s", text)
+		}
+	case part.IsToolUse():
+		state := part.StateString()
+		if state == "" {
+			state = "running"
+		}
+		debuglog.Log("[agent:tool] %s (%s)", part.ToolName, state)
+	case part.IsToolResult():
+		output := part.OutputString()
+		if len(output) > 500 {
+			output = output[:500] + "..."
+		}
+		debuglog.Log("[agent:tool-result] %s", output)
+	default:
+		if part.Text != "" {
+			debuglog.Log("[agent:%s] %s", part.Type, part.Text)
+		}
+	}
+}
+
+// extractLatestStatus returns the most relevant status line from the latest
+// assistant message. It prioritizes: thinking > tool use > text.
+func extractLatestStatus(messages []opencode.SessionMessage) string {
 	if len(messages) == 0 {
 		return "Waiting for OpenCode to start..."
 	}
@@ -325,40 +449,48 @@ func extractAgentStatus(messages []opencode.SessionMessage) string {
 			continue
 		}
 
-		var statusParts []string
-		var lastToolName string
+		var lastThinking string
+		var lastTool string
 		var lastText string
 
 		for _, part := range msg.Parts {
-			switch part.Type {
-			case "tool-invocation", "tool-use":
+			switch {
+			case part.IsThinking():
+				text := strings.TrimSpace(part.Text)
+				if text != "" {
+					if len(text) > 150 {
+						text = text[len(text)-150:]
+					}
+					lastThinking = text
+				}
+			case part.IsToolUse():
 				if part.ToolName != "" {
-					lastToolName = part.ToolName
 					state := part.StateString()
 					if state == "" {
 						state = "running"
 					}
-					statusParts = append(statusParts, fmt.Sprintf("🔧 %s (%s)", part.ToolName, state))
+					lastTool = fmt.Sprintf("%s (%s)", part.ToolName, state)
 				}
-			case "text":
-				if part.Text != "" {
-					// Grab last ~80 chars of text as a preview.
-					text := strings.TrimSpace(part.Text)
-					if len(text) > 100 {
-						text = text[len(text)-100:]
+			case part.IsText():
+				text := strings.TrimSpace(part.Text)
+				if text != "" {
+					if len(text) > 150 {
+						text = text[len(text)-150:]
 					}
 					lastText = text
 				}
 			}
 		}
 
-		if len(statusParts) > 0 {
-			// Show the most recent tool use.
-			latest := statusParts[len(statusParts)-1]
-			return fmt.Sprintf("Agent: %s", latest)
+		// Priority: tool (most actionable) > thinking > text.
+		if lastTool != "" {
+			if lastThinking != "" {
+				return fmt.Sprintf("Agent: %s | %s", lastTool, truncate(lastThinking, 80))
+			}
+			return fmt.Sprintf("Agent: %s", lastTool)
 		}
-		if lastToolName != "" {
-			return fmt.Sprintf("Agent: Using %s", lastToolName)
+		if lastThinking != "" {
+			return fmt.Sprintf("Thinking: %s", lastThinking)
 		}
 		if lastText != "" {
 			return fmt.Sprintf("Agent: %s", lastText)
@@ -366,6 +498,14 @@ func extractAgentStatus(messages []opencode.SessionMessage) string {
 	}
 
 	return "Agent is thinking..."
+}
+
+// truncate shortens a string to maxLen, adding "..." if truncated.
+func truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen-3] + "..."
 }
 
 // runImportCmd runs terraform import for the selected resources.

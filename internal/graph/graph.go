@@ -141,6 +141,25 @@ func New() *Graph {
 	}
 }
 
+// AddNode inserts a resource into the graph. It is used by the cache layer
+// to reconstruct a graph without a live Steampipe connection.
+func (g *Graph) AddNode(r steampipe.Resource) {
+	key := nodeKey(r.Type, r.ID)
+	node := &Node{
+		Key:      key,
+		Resource: r,
+		Edges:    make(map[string]bool),
+	}
+	g.Nodes[key] = node
+	g.indexResource(key, r)
+}
+
+// AddEdge creates a bidirectional link between two node keys.
+// It is exported so the cache layer can restore edges.
+func (g *Graph) AddEdge(keyA, keyB string) {
+	g.addEdge(keyA, keyB)
+}
+
 // ---------------------------------------------------------------------------
 // Build: scan Steampipe tables and populate the graph
 // ---------------------------------------------------------------------------

@@ -99,7 +99,7 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Connect to Steampipe.
-	fmt.Println("🔌 Connecting to Steampipe...")
+	fmt.Println("Connecting to Steampipe...")
 	spClient, err := steampipe.New(cfg.SteampipeConnStr())
 	if err != nil {
 		return fmt.Errorf("connect to steampipe: %w\n\nMake sure Steampipe is running: steampipe service start", err)
@@ -107,35 +107,36 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	defer spClient.Close()
 
 	// Look up resources by ARN.
-	fmt.Printf("🔍 Looking up %d resource(s) by ARN...\n", len(arns))
+	fmt.Printf("Looking up %d resource(s) by ARN...\n", len(arns))
 	resources, err := spClient.FetchResourcesByARNs(schema, arns)
 	if err != nil {
 		return fmt.Errorf("fetch resources: %w", err)
 	}
-	fmt.Printf("✅ Found %d resource(s):\n", len(resources))
+	fmt.Printf("Found %d resource(s):\n", len(resources))
 	for i, r := range resources {
 		fmt.Printf("   %d. [%s] %s — %s\n", i+1, r.Type, r.Name, r.ID)
 	}
 
 	// Start OpenCode server.
-	fmt.Println("\n🤖 Starting OpenCode server...")
+	fmt.Println("\nStarting OpenCode server...")
 	ocServer, err := opencode.StartServer(context.Background(), cfg.OpencodePort, outputAbs)
 	if err != nil {
 		return fmt.Errorf("start opencode server: %w\n\nMake sure OpenCode is installed: brew install anomalyco/tap/opencode", err)
 	}
 	defer ocServer.Stop()
 
-	// Create session.
-	fmt.Println("📝 Creating OpenCode session...")
+	// Create session and message tracker.
+	fmt.Println("Creating OpenCode session...")
 	sessionID, err := ocServer.CreateSession("terraclaw-terraform-generation")
 	if err != nil {
 		return fmt.Errorf("create session: %w", err)
 	}
+	tracker := opencode.NewMessageTracker()
 
 	// ---------------------------------------------------------------
 	// Stage 1: Blueprint Generation
 	// ---------------------------------------------------------------
-	fmt.Println("Stage 1: Generating Blueprint...")
+	fmt.Println("\n--- Stage 1: Generating Blueprint ---")
 
 	// Inject Stage 1 system prompt.
 	if err := ocServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt()); err != nil {
@@ -146,47 +147,9 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	stage1Prompt := llm.BuildStage1UserPrompt(resources)
 	debuglog.Log("[generate] sending stage 1 prompt (%d bytes)", len(stage1Prompt))
 
-	fmt.Println("⏳ Waiting for blueprint generation (this may take a few minutes)...")
-
-	// Send Stage 1 prompt asynchronously and poll for status.
-	resultCh := ocServer.PromptAsync(sessionID, stage1Prompt)
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
-	var stage1Response string
-	for {
-		done := false
-		select {
-		case result := <-resultCh:
-			if result.Err != nil {
-				return fmt.Errorf("stage 1 (blueprint) failed: %w", result.Err)
-			}
-			stage1Response = result.Response
-			done = true
-
-		case <-ticker.C:
-			messages, err := ocServer.ListMessages(sessionID)
-			if err != nil {
-				continue
-			}
-			if len(messages) > 0 {
-				latest := messages[len(messages)-1]
-				if latest.Info.Role == "assistant" {
-					for _, part := range latest.Parts {
-						if part.ToolName != "" {
-							state := part.StateString()
-							if state == "" {
-								state = "running"
-							}
-							fmt.Printf("   🔧 %s (%s)\n", part.ToolName, state)
-						}
-					}
-				}
-			}
-		}
-		if done {
-			break
-		}
+	stage1Response, err := pollPrompt(ocServer, sessionID, stage1Prompt, tracker)
+	if err != nil {
+		return fmt.Errorf("stage 1 (blueprint) failed: %w", err)
 	}
 
 	// Extract and persist blueprint.
@@ -202,7 +165,7 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	// ---------------------------------------------------------------
 	// Stage 2: Terraform Code Generation
 	// ---------------------------------------------------------------
-	fmt.Println("Stage 2: Generating Terraform Code...")
+	fmt.Println("\n--- Stage 2: Generating Terraform Code ---")
 
 	// Read blueprint back from disk (source of truth).
 	blueprintFromDisk, err := llm.ReadBlueprint(cfg.OutputDir)
@@ -214,42 +177,9 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	stage2Prompt := llm.BuildStage2Prompt(blueprintFromDisk, outputAbs)
 	debuglog.Log("[generate] sending stage 2 prompt (%d bytes)", len(stage2Prompt))
 
-	fmt.Println("⏳ Waiting for Terraform code generation (this may take a few minutes)...")
-
-	resultCh = ocServer.PromptAsync(sessionID, stage2Prompt)
-
-	for {
-		done := false
-		select {
-		case result := <-resultCh:
-			if result.Err != nil {
-				return fmt.Errorf("stage 2 (terraform) failed: %w", result.Err)
-			}
-			done = true
-
-		case <-ticker.C:
-			messages, err := ocServer.ListMessages(sessionID)
-			if err != nil {
-				continue
-			}
-			if len(messages) > 0 {
-				latest := messages[len(messages)-1]
-				if latest.Info.Role == "assistant" {
-					for _, part := range latest.Parts {
-						if part.ToolName != "" {
-							state := part.StateString()
-							if state == "" {
-								state = "running"
-							}
-							fmt.Printf("   🔧 %s (%s)\n", part.ToolName, state)
-						}
-					}
-				}
-			}
-		}
-		if done {
-			break
-		}
+	_, err = pollPrompt(ocServer, sessionID, stage2Prompt, tracker)
+	if err != nil {
+		return fmt.Errorf("stage 2 (terraform) failed: %w", err)
 	}
 
 	// Scan for generated files recursively.
@@ -261,15 +191,15 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("stage 2 (terraform) failed: no files were generated")
 	}
 
-	fmt.Printf("\n✅ Generated %d file(s) in %s:\n", len(files), cfg.OutputDir)
+	fmt.Printf("\nGenerated %d file(s) in %s:\n", len(files), cfg.OutputDir)
 	for _, f := range files {
-		fmt.Printf("   📄 %s (%d bytes)\n", f.Name, len(f.Content))
+		fmt.Printf("   %s (%d bytes)\n", f.Name, len(f.Content))
 	}
 
 	// ---------------------------------------------------------------
 	// Stage 3: Import & Validation
 	// ---------------------------------------------------------------
-	fmt.Println("\n📥 Stage 3: Import & Validation...")
+	fmt.Println("\n--- Stage 3: Import & Validation ---")
 
 	var finalImportResult *llm.ImportStageResult
 	for iteration := 1; iteration <= llm.MaxRefinementIterations; iteration++ {
@@ -280,51 +210,12 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 			stage3Prompt = llm.BuildRefinementPrompt(outputAbs, iteration, llm.MaxRefinementIterations)
 		}
 
-		fmt.Printf("⏳ Iteration %d/%d: Running imports and refining...\n", iteration, llm.MaxRefinementIterations)
+		fmt.Printf("\nIteration %d/%d: Running imports and refining...\n", iteration, llm.MaxRefinementIterations)
 		debuglog.Log("[generate] sending stage 3 prompt (iteration %d, %d bytes)", iteration, len(stage3Prompt))
 
-		resultCh = ocServer.PromptAsync(sessionID, stage3Prompt)
-
-		var stage3Response string
-		stage3Err := false
-		for {
-			done := false
-			select {
-			case result := <-resultCh:
-				if result.Err != nil {
-					fmt.Printf("   ❌ Stage 3 prompt failed (iteration %d): %v\n", iteration, result.Err)
-					stage3Err = true
-					done = true
-				} else {
-					stage3Response = result.Response
-					done = true
-				}
-			case <-ticker.C:
-				messages, err := ocServer.ListMessages(sessionID)
-				if err != nil {
-					continue
-				}
-				if len(messages) > 0 {
-					latest := messages[len(messages)-1]
-					if latest.Info.Role == "assistant" {
-						for _, part := range latest.Parts {
-							if part.ToolName != "" {
-								state := part.StateString()
-								if state == "" {
-									state = "running"
-								}
-								fmt.Printf("   🔧 %s (%s)\n", part.ToolName, state)
-							}
-						}
-					}
-				}
-			}
-			if done {
-				break
-			}
-		}
-
-		if stage3Err {
+		stage3Response, stage3Err := pollPrompt(ocServer, sessionID, stage3Prompt, tracker)
+		if stage3Err != nil {
+			fmt.Printf("   Stage 3 prompt failed (iteration %d): %v\n", iteration, stage3Err)
 			if iteration < llm.MaxRefinementIterations {
 				fmt.Println("   Continuing to next iteration...")
 				continue
@@ -334,7 +225,7 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 
 		importResult, parseErr := llm.ExtractImportResult(stage3Response)
 		if parseErr != nil {
-			fmt.Printf("   ⚠️  Could not parse import result: %v\n", parseErr)
+			fmt.Printf("   Could not parse import result: %v\n", parseErr)
 			if iteration < llm.MaxRefinementIterations {
 				fmt.Println("   Continuing to next iteration...")
 				continue
@@ -343,16 +234,16 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 		}
 
 		finalImportResult = importResult
-		fmt.Printf("   ✅ Successful: %d, ❌ Failed: %d (status: %s)\n",
+		fmt.Printf("   Successful: %d, Failed: %d (status: %s)\n",
 			importResult.Successful, importResult.Failed, importResult.Status)
 
 		if importResult.Status == "success" {
-			fmt.Println("\n🎉 All imports successful! Terraform state file generated.")
+			fmt.Println("\nAll imports successful! Terraform state file generated.")
 			break
 		}
 
 		if iteration == llm.MaxRefinementIterations {
-			fmt.Printf("\n⚠️  Reached max iterations (%d). Some imports may have failed.\n",
+			fmt.Printf("\nReached max iterations (%d). Some imports may have failed.\n",
 				llm.MaxRefinementIterations)
 		}
 	}
@@ -362,18 +253,117 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		debuglog.Log("[generate] warning: rescan after stage 3 failed: %v", err)
 	} else {
-		fmt.Printf("\n📂 Final file listing (%d files in %s):\n", len(files), cfg.OutputDir)
+		fmt.Printf("\nFinal file listing (%d files in %s):\n", len(files), cfg.OutputDir)
 		for _, f := range files {
-			fmt.Printf("   📄 %s (%d bytes)\n", f.Name, len(f.Content))
+			fmt.Printf("   %s (%d bytes)\n", f.Name, len(f.Content))
 		}
 	}
 
 	if finalImportResult != nil && finalImportResult.Status == "success" {
-		fmt.Println("\n✅ Terraform state file generated successfully!")
+		fmt.Println("\nTerraform state file generated successfully!")
 	}
 
 	// Print the equivalent CLI command for reference.
-	fmt.Printf("\n💡 To re-run this exact generation:\n")
+	fmt.Printf("\nTo re-run this exact generation:\n")
 	fmt.Printf("   terraclaw generate --resources %s --schema %s\n", strings.Join(arns, ","), schema)
 	return nil
+}
+
+// pollPrompt sends a prompt asynchronously and polls for new message parts,
+// printing all content (thinking, text, tool use, tool results) to stdout
+// and logging to the debug log. Returns the final response text.
+func pollPrompt(server *opencode.Server, sessionID, prompt string, tracker *opencode.MessageTracker) (string, error) {
+	resultCh := server.PromptAsync(sessionID, prompt)
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case result := <-resultCh:
+			// Drain any remaining new parts before returning.
+			drainNewParts(server, sessionID, tracker)
+			if result.Err != nil {
+				return "", result.Err
+			}
+			return result.Response, nil
+
+		case <-ticker.C:
+			messages, err := server.ListMessages(sessionID)
+			if err != nil {
+				debuglog.Log("[generate] poll error: %v", err)
+				continue
+			}
+			newParts := tracker.NewParts(messages)
+			for _, tp := range newParts {
+				printAndLogPart(tp)
+			}
+		}
+	}
+}
+
+// drainNewParts fetches messages one last time to print anything that arrived
+// between the last tick and the prompt completing.
+func drainNewParts(server *opencode.Server, sessionID string, tracker *opencode.MessageTracker) {
+	messages, err := server.ListMessages(sessionID)
+	if err != nil {
+		return
+	}
+	for _, tp := range tracker.NewParts(messages) {
+		printAndLogPart(tp)
+	}
+}
+
+// printAndLogPart prints a tracked message part to stdout and logs it.
+func printAndLogPart(tp opencode.TrackedPart) {
+	part := tp.Part
+
+	switch {
+	case part.IsThinking():
+		text := strings.TrimSpace(part.Text)
+		if text == "" {
+			return
+		}
+		debuglog.Log("[agent:thinking] %s", text)
+		// Print thinking content with a prefix for clarity.
+		for _, line := range strings.Split(text, "\n") {
+			fmt.Printf("   [thinking] %s\n", line)
+		}
+
+	case part.IsText():
+		text := strings.TrimSpace(part.Text)
+		if text == "" {
+			return
+		}
+		debuglog.Log("[agent:text] %s", text)
+		for _, line := range strings.Split(text, "\n") {
+			fmt.Printf("   %s\n", line)
+		}
+
+	case part.IsToolUse():
+		state := part.StateString()
+		if state == "" {
+			state = "running"
+		}
+		debuglog.Log("[agent:tool] %s (%s)", part.ToolName, state)
+		fmt.Printf("   [tool] %s (%s)\n", part.ToolName, state)
+
+	case part.IsToolResult():
+		output := part.OutputString()
+		debuglog.Log("[agent:tool-result] %s", output)
+		// Print tool results — truncate very long output for terminal readability.
+		if len(output) > 500 {
+			output = output[:500] + "...(truncated)"
+		}
+		if output != "" {
+			for _, line := range strings.Split(output, "\n") {
+				fmt.Printf("   [result] %s\n", line)
+			}
+		}
+
+	default:
+		if part.Text != "" {
+			debuglog.Log("[agent:%s] %s", part.Type, part.Text)
+			fmt.Printf("   [%s] %s\n", part.Type, part.Text)
+		}
+	}
 }
