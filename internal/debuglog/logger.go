@@ -63,6 +63,22 @@ func Enabled() bool {
 	return enabled
 }
 
+// Writer returns an io.Writer that sends each line to the debug log with
+// the given prefix. Useful for capturing subprocess stdout/stderr.
+func Writer(prefix string) *PrefixWriter {
+	return &PrefixWriter{prefix: prefix}
+}
+
+// PrefixWriter implements io.Writer by forwarding to debuglog.Log.
+type PrefixWriter struct {
+	prefix string
+}
+
+func (w *PrefixWriter) Write(p []byte) (int, error) {
+	Log("%s %s", w.prefix, string(p))
+	return len(p), nil
+}
+
 // Close flushes and closes the underlying log file.
 // It is safe to call even if Init was never called.
 func Close() {

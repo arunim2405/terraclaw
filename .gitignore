@@ -37,3 +37,5 @@ terraclaw.log
 output/
 main.tf
 .DS_Store
+.sample.docker.env
+terraclaw.log

@@ -41,14 +41,25 @@ func StartServer(ctx context.Context, port int, cwd string) (*Server, error) {
 	}
 
 	baseURL := fmt.Sprintf("http://127.0.0.1:%d", port)
+
+	// Check if an OpenCode server is already running on this port.
+	existing := &Server{
+		baseURL: baseURL,
+		client:  &http.Client{Timeout: 600 * time.Second},
+		port:    port,
+	}
+	if err := existing.waitForReady(2 * time.Second); err == nil {
+		debuglog.Log("[opencode] reusing existing server at %s", baseURL)
+		return existing, nil
+	}
+
 	debuglog.Log("[opencode] starting server on port %d, cwd=%s", port, cwd)
 
 	// Build the command. OpenCode is started without the TUI (headless/server mode).
-	cmd := exec.CommandContext(ctx, "opencode", "--headless")
+	cmd := exec.CommandContext(ctx, "opencode", "serve", "--port", fmt.Sprintf("%d", port))
 	cmd.Dir = cwd
-	cmd.Env = append(os.Environ(), fmt.Sprintf("OPENCODE_PORT=%d", port))
-	cmd.Stdout = nil
-	cmd.Stderr = nil
+	cmd.Stdout = debuglog.Writer("[opencode:stdout]")
+	cmd.Stderr = debuglog.Writer("[opencode:stderr]")
 
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("start opencode: %w", err)

@@ -1,0 +1,25 @@
+# Build artifacts
+output/
+*.log
+terraclaw
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Environment (credentials)
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+
+# Cache
+.cache/
