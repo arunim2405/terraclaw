@@ -14,6 +14,7 @@ import (
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
 	"github.com/arunim2405/terraclaw/internal/opencode"
+	"github.com/arunim2405/terraclaw/internal/provider"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
 
@@ -77,6 +78,7 @@ type Model struct {
 
 	selectedSchema   string
 	selectedScanMode string // "key" or "all"
+	cloud            provider.Cloud
 
 	// Cache info for the current schema+scanMode (nil if no cache).
 	cachedScan *cache.ScanInfo
@@ -288,7 +290,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Stage 1 done — transition to Stage 2.
 			m.agentStatus = "Blueprint generated, starting Terraform generation..."
 			debuglog.Log("[tui] stage 1 complete, transitioning to stage 2")
-			return m, transitionToStage2Cmd(m.activeSessionID, msg.response)
+			return m, transitionToStage2Cmd(m.activeSessionID, msg.response, m.cloud)
 		}
 		if m.generationStage == 3 {
 			// Stage 3 iteration done — check import result.
@@ -311,7 +313,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.refinementIteration, iterInfo, m.refinementIteration+1)
 				m.agentStatus = fmt.Sprintf("Iteration %d had failures%s, starting next iteration...",
 					m.refinementIteration, iterInfo)
-				return m, importViaOpencodeCmd(m.activeSessionID, m.refinementIteration+1)
+				return m, importViaOpencodeCmd(m.activeSessionID, m.refinementIteration+1, m.cloud)
 			}
 
 			// Max iterations reached.
@@ -508,8 +510,9 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		if item, ok := m.list.SelectedItem().(listItem); ok {
 			debuglog.Log("[tui] step: SelectSchema → SelectScanMode (schema=%q)", item.title)
 			m.selectedSchema = item.title
+			m.cloud = provider.DetectFromSchema(item.title)
 			m.step = StepSelectScanMode
-			m.list = buildScanModeList(m.width, m.height)
+			m.list = buildScanModeList(m.width, m.height, m.cloud)
 		}
 
 	case StepSelectScanMode:
@@ -572,7 +575,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			if item.title == "Yes" {
 				debuglog.Log("[tui] step: ConfirmGenerate → Generating")
 				m.step = StepGenerating
-				return m, tea.Batch(tickCmd(), generateCodeCmd(m.selectedResources))
+				return m, tea.Batch(tickCmd(), generateCodeCmd(m.selectedResources, m.selectedSchema))
 			}
 			debuglog.Log("[tui] step: ConfirmGenerate → Quit (user declined)")
 			return m, tea.Quit
@@ -591,7 +594,7 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 				// Use OpenCode for import+refinement if session is still active.
 				if m.activeSessionID != "" && opencodeServer != nil {
 					debuglog.Log("[tui] using OpenCode session %s for Stage 3 import", m.activeSessionID)
-					return m, tea.Batch(tickCmd(), importViaOpencodeCmd(m.activeSessionID, 1))
+					return m, tea.Batch(tickCmd(), importViaOpencodeCmd(m.activeSessionID, 1, m.cloud))
 				}
 				// Fallback to direct import.sh execution.
 				debuglog.Log("[tui] no active session, falling back to direct import")
@@ -991,11 +994,25 @@ func buildSchemaList(schemas []string, w, h int) list.Model {
 	return newList(items, "Select Cloud Provider", w, h, 0)
 }
 
-func buildScanModeList(w, h int) list.Model {
+func buildScanModeList(w, h int, cloud ...provider.Cloud) list.Model {
+	c := provider.AWS
+	if len(cloud) > 0 {
+		c = cloud[0]
+	}
+	defaultTables := graph.DefaultTablesForProvider(c)
+
+	var desc string
+	switch c {
+	case provider.Azure:
+		desc = fmt.Sprintf("Scan %d key Azure resource types (VNets, VMs, AKS, Storage, SQL, etc.)", len(defaultTables))
+	default:
+		desc = fmt.Sprintf("Scan %d key AWS resource types (VPCs, EC2, IAM, S3, RDS, etc.)", len(defaultTables))
+	}
+
 	items := []list.Item{
 		listItem{
 			title: "Key Resources (Recommended)",
-			desc:  fmt.Sprintf("Scan %d key AWS resource types (VPCs, EC2, IAM, S3, RDS, etc.)", len(graph.DefaultAWSTables)),
+			desc:  desc,
 		},
 		listItem{
 			title: "All Resources",

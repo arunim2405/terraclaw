@@ -17,8 +17,15 @@ set -euo pipefail
 #                       (optional)  Standard AWS credential env vars.
 #                                   Steampipe auto-detects these.
 #
+#   AZURE_SUBSCRIPTION_ID, AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET
+#                       (optional)  Standard Azure service principal credentials.
+#                                   Steampipe Azure plugin auto-detects these.
+#
 #   STEAMPIPE_PLUGINS   (optional)  Comma-separated extra plugins to install
 #                                   at startup, e.g. "azure,gcp"
+#
+#   CLOUD_PROVIDER      (optional)  "aws" or "azure". Determines which default
+#                                   Steampipe plugin to install. Default: "aws".
 # ============================================================================
 
 log() { echo "[entrypoint] $(date '+%H:%M:%S') $*"; }
@@ -60,12 +67,23 @@ if [ -n "${STEAMPIPE_PLUGINS:-}" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Install default Steampipe AWS plugin (if not already installed)
+# 4. Install default Steampipe plugin based on CLOUD_PROVIDER
 # ---------------------------------------------------------------------------
-if ! steampipe plugin list 2>/dev/null | grep -q aws; then
-    log "Installing steampipe AWS plugin..."
-    steampipe plugin install aws
-fi
+CLOUD_PROVIDER="${CLOUD_PROVIDER:-aws}"
+case "$CLOUD_PROVIDER" in
+    azure)
+        if ! steampipe plugin list 2>/dev/null | grep -q azure; then
+            log "Installing steampipe Azure plugin..."
+            steampipe plugin install azure
+        fi
+        ;;
+    *)
+        if ! steampipe plugin list 2>/dev/null | grep -q aws; then
+            log "Installing steampipe AWS plugin..."
+            steampipe plugin install aws
+        fi
+        ;;
+esac
 
 # ---------------------------------------------------------------------------
 # 5. Start Steampipe service

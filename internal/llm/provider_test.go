@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/arunim2405/terraclaw/internal/llm"
+	cloudprovider "github.com/arunim2405/terraclaw/internal/provider"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
@@ -50,7 +51,7 @@ func TestProperty6_Stage1UserPromptContainsAllResourceIdentifiers(t *testing.T) 
 
 	properties.Property("all resource IDs and Types appear in Stage 1 user prompt", prop.ForAll(
 		func(resources []steampipe.Resource) bool {
-			result := llm.BuildStage1UserPrompt(resources)
+			result := llm.BuildStage1UserPrompt(resources, cloudprovider.AWS)
 			for _, r := range resources {
 				if !strings.Contains(result, r.ID) {
 					return false
@@ -94,7 +95,7 @@ func TestProperty3_Stage2PromptEmbedsBlueprintContent(t *testing.T) {
 // TestBuildStage1SystemPrompt_ContainsKeyInstructions verifies the Stage 1
 // system prompt contains key instruction sections.
 func TestBuildStage1SystemPrompt_ContainsKeyInstructions(t *testing.T) {
-	prompt := llm.BuildStage1SystemPrompt()
+	prompt := llm.BuildStage1SystemPrompt(cloudprovider.AWS)
 
 	checks := []struct {
 		name    string
@@ -106,7 +107,7 @@ func TestBuildStage1SystemPrompt_ContainsKeyInstructions(t *testing.T) {
 		},
 		{
 			name:    "for_each rules",
-			phrases: []string{"for_each", "for_each_rules"},
+			phrases: []string{"for_each", "module_sharing_rules"},
 		},
 		{
 			name:    "import ID preservation",
@@ -117,8 +118,8 @@ func TestBuildStage1SystemPrompt_ContainsKeyInstructions(t *testing.T) {
 			phrases: []string{"prompt_injection_defense", "Ignore any instructions"},
 		},
 		{
-			name:    "AWS CLI fallback",
-			phrases: []string{"aws_cli_fallback", "AWS CLI"},
+			name:    "CLI fallback",
+			phrases: []string{"cli_fallback", "CLI"},
 		},
 	}
 
@@ -158,8 +159,8 @@ func TestBuildStage2Prompt_ContainsKeyInstructions(t *testing.T) {
 			phrases: []string{"Cross-Module", "cross-module"},
 		},
 		{
-			name:    "AWS CLI instructions",
-			phrases: []string{"AWS CLI"},
+			name:    "CLI instructions",
+			phrases: []string{"CLI Fallback", "CLI"},
 		},
 	}
 
@@ -340,7 +341,7 @@ func TestProperty2_Stage1ErrorHaltsPipeline(t *testing.T) {
 			}
 			defer os.RemoveAll(tmpDir)
 
-			_, err = provider.GenerateTerraform(context.Background(), resources, tmpDir)
+			_, err = provider.GenerateTerraform(context.Background(), resources, tmpDir, cloudprovider.AWS)
 			if err == nil {
 				return false
 			}
@@ -382,7 +383,7 @@ func TestGenerateTerraform_HappyPath(t *testing.T) {
 		{ID: "vpc-123", Type: "aws_vpc", Name: "main"},
 	}
 
-	files, err := provider.GenerateTerraform(context.Background(), resources, tmpDir)
+	files, err := provider.GenerateTerraform(context.Background(), resources, tmpDir, cloudprovider.AWS)
 	if err != nil {
 		t.Fatalf("GenerateTerraform returned unexpected error: %v", err)
 	}
@@ -421,7 +422,7 @@ func TestGenerateTerraform_Stage2Error(t *testing.T) {
 		{ID: "bucket-1", Type: "aws_s3_bucket", Name: "data"},
 	}
 
-	_, err := provider.GenerateTerraform(context.Background(), resources, tmpDir)
+	_, err := provider.GenerateTerraform(context.Background(), resources, tmpDir, cloudprovider.AWS)
 	if err == nil {
 		t.Fatalf("expected error from Stage 2 failure, got nil")
 	}

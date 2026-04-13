@@ -15,24 +15,28 @@ import (
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/llm"
 	"github.com/arunim2405/terraclaw/internal/opencode"
+	"github.com/arunim2405/terraclaw/internal/provider"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
 
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate Terraform code for specified resources (non-interactive)",
-	Long: `Generate Terraform code directly by specifying resource ARNs.
+	Long: `Generate Terraform code directly by specifying resource ARNs or Azure resource IDs.
 This is the non-interactive equivalent of the TUI flow.
 
-Example:
-  terraclaw generate --resources arn:aws:cognito-idp:eu-central-1:123456:userpool/pool-id,arn:aws:s3:::my-bucket
-  terraclaw generate --resources arn:aws:lambda:us-east-1:123456:function:my-func --schema aws`,
+Examples:
+  # AWS resources (ARNs)
+  terraclaw generate --resources arn:aws:s3:::my-bucket,arn:aws:lambda:us-east-1:123456:function:my-func --schema aws
+
+  # Azure resources (resource IDs)
+  terraclaw generate --resources /subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1 --schema azure`,
 	RunE: runGenerate,
 }
 
 func init() {
-	generateCmd.Flags().StringP("resources", "r", "", "Comma-separated list of resource ARNs to generate Terraform for (required)")
-	generateCmd.Flags().String("schema", "aws", "Steampipe schema to query (default: aws)")
+	generateCmd.Flags().StringP("resources", "r", "", "Comma-separated list of resource ARNs or Azure resource IDs (required)")
+	generateCmd.Flags().String("schema", "", "Steampipe schema to query (auto-detected from resource IDs if omitted)")
 	_ = generateCmd.MarkFlagRequired("resources")
 	rootCmd.AddCommand(generateCmd)
 }
@@ -45,17 +49,28 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("--resources flag is required")
 	}
 
-	// Parse ARNs from comma-separated list.
-	var arns []string
+	// Parse resource IDs from comma-separated list.
+	var resourceIDs []string
 	for _, a := range strings.Split(resourcesFlag, ",") {
 		a = strings.TrimSpace(a)
 		if a != "" {
-			arns = append(arns, a)
+			resourceIDs = append(resourceIDs, a)
 		}
 	}
-	if len(arns) == 0 {
-		return fmt.Errorf("no valid ARNs provided")
+	if len(resourceIDs) == 0 {
+		return fmt.Errorf("no valid resource IDs provided")
 	}
+
+	// Auto-detect cloud provider from the first resource ID if schema not specified.
+	if schema == "" {
+		cloud := provider.DetectFromResourceID(resourceIDs[0])
+		schema = cloud.String()
+		if schema == "unknown" {
+			schema = "aws" // fallback
+		}
+		fmt.Printf("Auto-detected schema: %s\n", schema)
+	}
+	cloud := provider.DetectFromSchema(schema)
 
 	// Load and configure.
 	cfg, err := config.Load()
@@ -78,7 +93,7 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 			fmt.Fprintf(os.Stderr, "warning: could not init debug log: %v\n", initErr)
 		}
 		defer debuglog.Close()
-		debuglog.Log("[generate] starting — arns=%v schema=%s outputDir=%s", arns, schema, cfg.OutputDir)
+		debuglog.Log("[generate] starting — resources=%v schema=%s cloud=%s outputDir=%s", resourceIDs, schema, cloud, cfg.OutputDir)
 	}
 
 	// Ensure output dir exists and resolve to absolute path.
@@ -106,9 +121,9 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	}
 	defer spClient.Close()
 
-	// Look up resources by ARN.
-	fmt.Printf("Looking up %d resource(s) by ARN...\n", len(arns))
-	resources, err := spClient.FetchResourcesByARNs(schema, arns)
+	// Look up resources by ID.
+	fmt.Printf("Looking up %d resource(s)...\n", len(resourceIDs))
+	resources, err := spClient.FetchResourcesByIDs(schema, resourceIDs)
 	if err != nil {
 		return fmt.Errorf("fetch resources: %w", err)
 	}
@@ -139,12 +154,12 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	fmt.Println("\n--- Stage 1: Generating Blueprint ---")
 
 	// Inject Stage 1 system prompt.
-	if err := ocServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt()); err != nil {
+	if err := ocServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt(cloud)); err != nil {
 		return fmt.Errorf("stage 1 (blueprint) failed: inject system prompt: %w", err)
 	}
 
 	// Build and send Stage 1 user prompt.
-	stage1Prompt := llm.BuildStage1UserPrompt(resources)
+	stage1Prompt := llm.BuildStage1UserPrompt(resources, cloud)
 	debuglog.Log("[generate] sending stage 1 prompt (%d bytes)", len(stage1Prompt))
 
 	stage1Response, err := pollPrompt(ocServer, sessionID, stage1Prompt, tracker)
@@ -174,7 +189,7 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Build and send Stage 2 prompt in the same session.
-	stage2Prompt := llm.BuildStage2Prompt(blueprintFromDisk, outputAbs)
+	stage2Prompt := llm.BuildStage2Prompt(blueprintFromDisk, outputAbs, cloud)
 	debuglog.Log("[generate] sending stage 2 prompt (%d bytes)", len(stage2Prompt))
 
 	_, err = pollPrompt(ocServer, sessionID, stage2Prompt, tracker)
@@ -205,9 +220,9 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	for iteration := 1; iteration <= llm.MaxRefinementIterations; iteration++ {
 		var stage3Prompt string
 		if iteration == 1 {
-			stage3Prompt = llm.BuildStage3Prompt(outputAbs, iteration, llm.MaxRefinementIterations)
+			stage3Prompt = llm.BuildStage3Prompt(outputAbs, iteration, llm.MaxRefinementIterations, cloud)
 		} else {
-			stage3Prompt = llm.BuildRefinementPrompt(outputAbs, iteration, llm.MaxRefinementIterations)
+			stage3Prompt = llm.BuildRefinementPrompt(outputAbs, iteration, llm.MaxRefinementIterations, cloud)
 		}
 
 		fmt.Printf("\nIteration %d/%d: Running imports and refining...\n", iteration, llm.MaxRefinementIterations)
@@ -265,7 +280,7 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 
 	// Print the equivalent CLI command for reference.
 	fmt.Printf("\nTo re-run this exact generation:\n")
-	fmt.Printf("   terraclaw generate --resources %s --schema %s\n", strings.Join(arns, ","), schema)
+	fmt.Printf("   terraclaw generate --resources %s --schema %s\n", strings.Join(resourceIDs, ","), schema)
 	return nil
 }
 

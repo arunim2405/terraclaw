@@ -13,6 +13,7 @@ import (
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
 	"github.com/arunim2405/terraclaw/internal/opencode"
+	"github.com/arunim2405/terraclaw/internal/provider"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 	tf "github.com/arunim2405/terraclaw/internal/terraform"
 )
@@ -199,11 +200,12 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 				return graphBuiltMsg{err: fmt.Errorf("list tables: %w", err)}
 			}
 		default: // "key"
-			// Use configured tables if set, else default AWS tables.
+			// Use configured tables if set, else provider-appropriate defaults.
 			if appConfig != nil && appConfig.ScanTables != "" && appConfig.ScanTables != "*" {
 				tables = splitAndTrim(appConfig.ScanTables, ",")
 			} else {
-				tables = graph.DefaultAWSTables
+				cloud := provider.DetectFromSchema(schema)
+				tables = graph.DefaultTablesForProvider(cloud)
 			}
 			debuglog.Log("[graph] scanning %d key tables for schema=%s", len(tables), schema)
 		}
@@ -235,7 +237,7 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 
 // generateCodeCmd sets up the OpenCode session and sends the prompt asynchronously.
 // It returns a generatingStartedMsg so the TUI can begin polling for progress.
-func generateCodeCmd(resources []ResourceItem) tea.Cmd {
+func generateCodeCmd(resources []ResourceItem, schema string) tea.Cmd {
 	return func() tea.Msg {
 		debuglog.Log("[opencode] generateCode called: resources=%d", len(resources))
 		if opencodeServer == nil {
@@ -263,13 +265,16 @@ func generateCodeCmd(resources []ResourceItem) tea.Cmd {
 		}
 		debuglog.Log("[opencode] session created: %s", sessionID)
 
+		// Detect cloud provider from schema.
+		cloud := provider.DetectFromSchema(schema)
+
 		// 2. Inject the Stage 1 system prompt.
-		if err := opencodeServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt()); err != nil {
+		if err := opencodeServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt(cloud)); err != nil {
 			return generationDoneMsg{err: fmt.Errorf("inject system prompt: %w", err)}
 		}
 
 		// 3. Build the Stage 1 user prompt and send it asynchronously.
-		userPrompt := llm.BuildStage1UserPrompt(raw)
+		userPrompt := llm.BuildStage1UserPrompt(raw, cloud)
 		debuglog.Log("[opencode] sending stage 1 prompt async (%d bytes)", len(userPrompt))
 
 		resultCh := opencodeServer.PromptAsync(sessionID, userPrompt)
@@ -325,7 +330,7 @@ func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult,
 
 // transitionToStage2Cmd extracts the blueprint from Stage 1, persists it,
 // and sends the Stage 2 prompt asynchronously.
-func transitionToStage2Cmd(sessionID string, stage1Response string) tea.Cmd {
+func transitionToStage2Cmd(sessionID string, stage1Response string, cloud provider.Cloud) tea.Cmd {
 	return func() tea.Msg {
 		blueprint, err := llm.ExtractBlueprint(stage1Response)
 		if err != nil {
@@ -342,7 +347,7 @@ func transitionToStage2Cmd(sessionID string, stage1Response string) tea.Cmd {
 		}
 
 		// Send Stage 2 prompt async.
-		resultCh := opencodeServer.PromptAsync(sessionID, llm.BuildStage2Prompt(blueprintFromDisk, appConfig.OutputDir))
+		resultCh := opencodeServer.PromptAsync(sessionID, llm.BuildStage2Prompt(blueprintFromDisk, appConfig.OutputDir, cloud))
 		debuglog.Log("[opencode] stage 2 prompt sent async for session %s", sessionID)
 
 		return stage2StartedMsg{resultCh: resultCh}
@@ -367,7 +372,7 @@ func scanGeneratedFilesCmd() tea.Cmd {
 // importViaOpencodeCmd sends a Stage 3 import+refinement prompt to the
 // existing OpenCode session. On iteration 1, it sends the initial import
 // prompt; on subsequent iterations it sends a refinement prompt.
-func importViaOpencodeCmd(sessionID string, iteration int) tea.Cmd {
+func importViaOpencodeCmd(sessionID string, iteration int, cloud provider.Cloud) tea.Cmd {
 	return func() tea.Msg {
 		if opencodeServer == nil {
 			return importFinishedMsg{err: fmt.Errorf("opencode server not initialized")}
@@ -378,9 +383,9 @@ func importViaOpencodeCmd(sessionID string, iteration int) tea.Cmd {
 
 		var prompt string
 		if iteration == 1 {
-			prompt = llm.BuildStage3Prompt(appConfig.OutputDir, iteration, llm.MaxRefinementIterations)
+			prompt = llm.BuildStage3Prompt(appConfig.OutputDir, iteration, llm.MaxRefinementIterations, cloud)
 		} else {
-			prompt = llm.BuildRefinementPrompt(appConfig.OutputDir, iteration, llm.MaxRefinementIterations)
+			prompt = llm.BuildRefinementPrompt(appConfig.OutputDir, iteration, llm.MaxRefinementIterations, cloud)
 		}
 
 		debuglog.Log("[opencode] sending stage 3 prompt (iteration %d, %d bytes)", iteration, len(prompt))

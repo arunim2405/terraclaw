@@ -50,6 +50,11 @@ RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tm
     && rm -rf /tmp/aws /tmp/awscli.zip
 
 # ---------------------------------------------------------------------------
+# Install Azure CLI
+# ---------------------------------------------------------------------------
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+# ---------------------------------------------------------------------------
 # Install Steampipe (as root so it lands in /usr/local/bin)
 # ---------------------------------------------------------------------------
 RUN wget https://github.com/turbot/steampipe/releases/download/v2.2.0/steampipe_linux_amd64.deb && \

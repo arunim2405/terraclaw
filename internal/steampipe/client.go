@@ -163,21 +163,31 @@ func pickFirst(m map[string]string, keys ...string) string {
 // appropriate Steampipe tables. It uses the ARN service mapping to determine
 // which tables to query, avoiding a full scan.
 func (c *Client) FetchResourcesByARNs(schema string, arns []string) ([]Resource, error) {
+	return c.FetchResourcesByIDs(schema, arns)
+}
+
+// FetchResourcesByIDs looks up specific resources by their unique identifiers
+// (AWS ARNs or Azure resource IDs) across the appropriate Steampipe tables.
+// It auto-detects the identifier format and uses the correct column for lookup.
+func (c *Client) FetchResourcesByIDs(schema string, ids []string) ([]Resource, error) {
 	var allResources []Resource
 
-	for _, arn := range arns {
-		tables := TableNamesForARN(arn)
+	for _, id := range ids {
+		tables := TableNamesForResourceID(id)
 		if len(tables) == 0 {
-			return nil, fmt.Errorf("cannot determine Steampipe table for ARN: %s", arn)
+			return nil, fmt.Errorf("cannot determine Steampipe table for resource: %s", id)
 		}
+
+		// Determine the lookup column based on ID format.
+		lookupCol := resourceIDColumn(id)
 
 		found := false
 		for _, table := range tables {
 			query := fmt.Sprintf(
-				`SELECT * FROM %s.%s WHERE arn = $1 LIMIT 1`,
-				quoteIdent(schema), quoteIdent(table),
+				`SELECT * FROM %s.%s WHERE %s = $1 LIMIT 1`,
+				quoteIdent(schema), quoteIdent(table), quoteIdent(lookupCol),
 			)
-			rows, err := c.db.Query(query, arn)
+			rows, err := c.db.Query(query, id)
 			if err != nil {
 				// Table might not exist for this plugin installation; skip it.
 				continue
@@ -228,9 +238,19 @@ func (c *Client) FetchResourcesByARNs(schema string, arns []string) ([]Resource,
 		}
 
 		if !found {
-			return nil, fmt.Errorf("resource not found for ARN: %s", arn)
+			return nil, fmt.Errorf("resource not found: %s", id)
 		}
 	}
 
 	return allResources, nil
+}
+
+// resourceIDColumn returns the Steampipe column name used to look up a
+// resource by its identifier. AWS uses "arn", Azure uses "id".
+func resourceIDColumn(id string) string {
+	if strings.HasPrefix(id, "arn:") {
+		return "arn"
+	}
+	// Azure resource IDs and other formats use the "id" column.
+	return "id"
 }

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/arunim2405/terraclaw/internal/debuglog"
+	"github.com/arunim2405/terraclaw/internal/provider"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 )
 
@@ -83,6 +84,81 @@ var DefaultAWSTables = []string{
 
 	// CloudWatch
 	"aws_cloudwatch_log_group",
+}
+
+// DefaultAzureTables is the curated set of high-value Azure tables scanned by
+// default in "key resources" mode, covering networking, compute, identity,
+// storage, and database layers.
+var DefaultAzureTables = []string{
+	// Networking
+	"azure_virtual_network",
+	"azure_subnet",
+	"azure_network_security_group",
+	"azure_public_ip",
+	"azure_lb",
+	"azure_application_gateway",
+	"azure_network_interface",
+	"azure_route_table",
+	"azure_nat_gateway",
+
+	// Compute
+	"azure_compute_virtual_machine",
+	"azure_compute_virtual_machine_scale_set",
+	"azure_compute_disk",
+	"azure_compute_availability_set",
+
+	// Containers
+	"azure_kubernetes_cluster",
+	"azure_container_registry",
+
+	// App Services
+	"azure_app_service_web_app",
+	"azure_app_service_plan",
+	"azure_app_service_function_app",
+
+	// Identity & Access
+	"azure_managed_identity",
+	"azure_role_assignment",
+
+	// Storage
+	"azure_storage_account",
+
+	// Databases
+	"azure_sql_server",
+	"azure_sql_database",
+	"azure_postgresql_flexible_server",
+	"azure_mysql_flexible_server",
+	"azure_cosmosdb_account",
+	"azure_redis_cache",
+
+	// Key Vault
+	"azure_key_vault",
+
+	// Monitoring
+	"azure_application_insights",
+	"azure_log_analytics_workspace",
+
+	// DNS
+	"azure_dns_zone",
+	"azure_private_dns_zone",
+
+	// Messaging
+	"azure_servicebus_namespace",
+	"azure_eventhub_namespace",
+
+	// Resource Management
+	"azure_resource_group",
+}
+
+// DefaultTablesForProvider returns the default table list for the given cloud
+// provider. Falls back to DefaultAWSTables for unrecognised providers.
+func DefaultTablesForProvider(cloud provider.Cloud) []string {
+	switch cloud {
+	case provider.Azure:
+		return DefaultAzureTables
+	default:
+		return DefaultAWSTables
+	}
 }
 
 // ---------------------------------------------------------------------------
