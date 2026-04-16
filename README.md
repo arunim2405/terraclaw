@@ -3,7 +3,7 @@
 Go-based interactive CLI for converting existing cloud resources to Terraform/OpenTofu configuration using AI.
 
 > **Looking to codify at scale?** If you need to codify cloud resources across your organization with minimal setup — plus governance, drift detection, and module management — check out
-<img width="244" height="64" alt="image" src="https://github.com/user-attachments/assets/7311c383-697b-40f7-93d5-84120994ba12" />
+> <a href="https://www.stackguardian.io/platform/code"><img width="244" height="64" alt="StackGuardian Code" src="https://github.com/user-attachments/assets/7311c383-697b-40f7-93d5-84120994ba12" /></a>
 
 
 ## Overview
