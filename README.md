@@ -6,10 +6,11 @@ Go-based interactive CLI for converting existing cloud resources to Terraform/Op
 
 `terraclaw` is a [BubbleTea](https://github.com/charmbracelet/bubbletea)-powered terminal UI tool that:
 
-1. **Discovers** your existing cloud resources via [Steampipe](https://steampipe.io/)
+1. **Discovers** your existing cloud resources via [Steampipe](https://steampipe.io/) (AWS and Azure)
 2. **Lets you select** the resources you want to import interactively
-3. **Generates Terraform HCL** using [OpenCode](https://opencode.ai/) (AI coding agent) in a two-stage pipeline (blueprint then code)
-4. **Runs `terraform import`** to create state files for the selected resources
+3. **Matches your own Terraform modules** from git repos or local paths, scoring them by fit
+4. **Generates Terraform HCL** using [OpenCode](https://opencode.ai/) (AI coding agent), preferring your modules over public registry modules
+5. **Runs `terraform import`** to create state files for the selected resources
 
 ## Prerequisites
 
@@ -93,12 +94,84 @@ terraclaw
 
 ### Non-interactive mode
 
-Generate Terraform directly by specifying resource ARNs:
+Generate Terraform directly by specifying resource ARNs or Azure resource IDs:
 
 ```bash
+# AWS
 terraclaw generate --resources arn:aws:s3:::my-bucket --schema aws
-terraclaw generate --resources arn:aws:s3:::bucket-1,arn:aws:lambda:us-east-1:123456:function:my-func
+
+# Azure
+terraclaw generate --resources /subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1 --schema azure
+
+# With user modules (auto-select all matching modules)
+terraclaw generate --resources arn:aws:s3:::my-bucket --schema aws --auto-modules
 ```
+
+### User Modules
+
+Register your organization's Terraform modules so terraclaw uses them instead of public registry modules during code generation.
+
+#### Adding a module
+
+```bash
+# From a git repository (Terraform source format)
+terraclaw add-module "git::https://github.com/acme/tf-modules.git//modules/vpc?ref=v2.0"
+
+# From a git repo via SSH
+terraclaw add-module "git@github.com:acme/tf-modules.git//modules/vpc?ref=v2.0"
+
+# From a local directory
+terraclaw add-module ./my-modules/vpc
+
+# With a custom name (overrides auto-derived name)
+terraclaw add-module --name "custom-vpc" "git::https://github.com/acme/tf-modules.git//modules/vpc?ref=v2.0"
+```
+
+When you add a module, terraclaw automatically:
+- Clones the repository (for git sources) or reads the local directory
+- Parses all `.tf` files to extract resource types, variables, and outputs
+- Detects the cloud provider (AWS, Azure) from resource type prefixes
+- Reads the README for a description
+- Stores the metadata in a local SQLite database (`~/.cache/terraclaw/modules.db`)
+
+#### Managing modules
+
+```bash
+# List all registered modules
+terraclaw list-modules
+
+# Show full metadata (variables, outputs, resource types)
+terraclaw inspect-module vpc
+
+# Remove a module
+terraclaw remove-module vpc
+```
+
+#### How modules are used during generation
+
+**Interactive mode (TUI):** After you select resources and confirm generation, terraclaw checks your registered modules for matches. If any modules manage the same resource types you selected, a module selection screen appears showing each module's **fit score** (0-100%). Modules scoring 60%+ are pre-selected. Toggle with **Space**, confirm with **Enter**.
+
+**Non-interactive mode:** Use `--use-modules` or `--auto-modules`:
+
+```bash
+# Auto-select all matching modules
+terraclaw generate --resources arn:aws:... --schema aws --auto-modules
+
+# Use modules (pre-selects those with >= 60% fit)
+terraclaw generate --resources arn:aws:... --schema aws --use-modules
+```
+
+#### Fit score
+
+The fit score tells you how well a module matches your selected resources:
+
+| Component | Weight | What it measures |
+|-----------|--------|------------------|
+| Coverage | 50% | Fraction of your selected resource types the module handles |
+| Specificity | 30% | How focused the module is (penalizes modules that drag in many unrelated resources) |
+| Variable Readiness | 20% | Fraction of required variables that have defaults or match resource properties |
+
+Selected modules are injected into the AI prompt as hard constraints, taking priority over public registry modules (e.g. `terraform-aws-modules`).
 
 ### Doctor checks
 
@@ -112,11 +185,25 @@ This checks that `steampipe`, `terraform`, and `opencode` are available on `PATH
 
 ### Flags
 
+**Global flags:**
 ```
 --output-dir string      Directory to write generated Terraform files (default "./output")
 --terraform-bin string   Path to the terraform binary (default "terraform")
 --debug                  Enable debug logging to file (see DEBUG_LOG_FILE)
 --no-cache               Skip the resource cache and always rescan from Steampipe
+```
+
+**Generate flags:**
+```
+-r, --resources string   Comma-separated resource ARNs or Azure resource IDs (required)
+    --schema string      Steampipe schema (auto-detected from resource IDs if omitted)
+    --use-modules        Use registered user modules (matched by resource type)
+    --auto-modules       Auto-select all matching user modules (implies --use-modules)
+```
+
+**Add-module flags:**
+```
+    --name string        Override the auto-derived module name
 ```
 
 ## Docker
@@ -233,19 +320,32 @@ terraclaw/
 ├── cmd/
 │   ├── root.go                     Cobra CLI setup & TUI entry
 │   ├── generate.go                 Non-interactive generate command
+│   ├── module.go                   Module management commands (add, list, remove, inspect)
 │   ├── doctor.go                   Dependency checker command
 │   └── debug.go                    Debug utilities
 ├── config/config.go                Configuration loading
 ├── opencode.json                   OpenCode project config (model, permissions, plugins)
 ├── internal/
 │   ├── opencode/opencode.go        OpenCode server lifecycle & REST client
-│   ├── llm/provider.go             Two-stage Terraform generation pipeline
-│   ├── steampipe/client.go         Steampipe PostgreSQL client
+│   ├── llm/
+│   │   ├── provider.go             Two-stage Terraform generation pipeline
+│   │   ├── prompts_aws.go          AWS-specific prompt content
+│   │   └── prompts_azure.go        Azure-specific prompt content
+│   ├── modules/
+│   │   ├── types.go                ModuleMetadata, FitResult types
+│   │   ├── store.go                SQLite CRUD for module metadata
+│   │   ├── scanner.go              Git clone + HCL parsing (terraform-config-inspect)
+│   │   ├── matcher.go              Fit score algorithm (coverage, specificity, var readiness)
+│   │   └── prompt.go               User module prompt section builder
+│   ├── provider/provider.go        Cloud provider detection (AWS, Azure)
+│   ├── steampipe/
+│   │   ├── client.go               Steampipe PostgreSQL client
+│   │   └── resource_mapping.go     AWS ARN + Azure resource ID → table mapping
 │   ├── terraform/
 │   │   ├── generator.go            HCL file helpers
 │   │   └── importer.go             terraform import runner
 │   ├── tui/
-│   │   ├── model.go                BubbleTea model & views
+│   │   ├── model.go                BubbleTea model & views (incl. module selection step)
 │   │   ├── commands.go             Async tea.Cmd definitions
 │   │   └── styles.go               Lipgloss styles
 │   ├── cache/                      SQLite scan cache
@@ -262,11 +362,12 @@ terraclaw/
 
 ## Keyboard Shortcuts (TUI)
 
-| Key           | Action                        |
-|---------------|-------------------------------|
-| `Enter`       | Select / confirm              |
-| `Space`       | Toggle resource selection     |
-| `↑` / `↓`     | Navigate list / scroll code   |
-| `Esc`         | Go back to previous step      |
-| `/`           | Filter list                   |
-| `q` / `Ctrl+C`| Quit                         |
+| Key           | Action                                      |
+|---------------|---------------------------------------------|
+| `Enter`       | Select / confirm                            |
+| `Space`       | Toggle resource or module selection         |
+| `r`           | Expand related resources (resource step)    |
+| `↑` / `↓`     | Navigate list / scroll code                 |
+| `Esc`         | Go back to previous step                    |
+| `/`           | Filter list                                 |
+| `q` / `Ctrl+C`| Quit                                       |

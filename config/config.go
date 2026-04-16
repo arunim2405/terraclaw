@@ -104,6 +104,11 @@ func (c *Config) CacheDBPath() string {
 	return filepath.Join(c.CacheDir, "findings.db")
 }
 
+// ModulesDBPath returns the full path to the SQLite modules database.
+func (c *Config) ModulesDBPath() string {
+	return filepath.Join(c.CacheDir, "modules.db")
+}
+
 func envOrDefault(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v

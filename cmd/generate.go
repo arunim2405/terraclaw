@@ -14,6 +14,7 @@ import (
 	"github.com/arunim2405/terraclaw/config"
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/llm"
+	"github.com/arunim2405/terraclaw/internal/modules"
 	"github.com/arunim2405/terraclaw/internal/opencode"
 	"github.com/arunim2405/terraclaw/internal/provider"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
@@ -25,18 +26,30 @@ var generateCmd = &cobra.Command{
 	Long: `Generate Terraform code directly by specifying resource ARNs or Azure resource IDs.
 This is the non-interactive equivalent of the TUI flow.
 
-Examples:
-  # AWS resources (ARNs)
-  terraclaw generate --resources arn:aws:s3:::my-bucket,arn:aws:lambda:us-east-1:123456:function:my-func --schema aws
+If you have registered user modules (via 'terraclaw add-module'), use --use-modules
+or --auto-modules to inject them as hard constraints during code generation.
+Matched modules take priority over public registry modules.
 
-  # Azure resources (resource IDs)
-  terraclaw generate --resources /subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1 --schema azure`,
+Examples:
+  # AWS resources
+  terraclaw generate --resources arn:aws:s3:::my-bucket --schema aws
+
+  # Azure resources
+  terraclaw generate --resources /subscriptions/xxx/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1 --schema azure
+
+  # With user modules (auto-select all matching)
+  terraclaw generate --resources arn:aws:s3:::my-bucket --schema aws --auto-modules
+
+  # Schema auto-detected from resource ID format
+  terraclaw generate --resources arn:aws:s3:::my-bucket --auto-modules`,
 	RunE: runGenerate,
 }
 
 func init() {
 	generateCmd.Flags().StringP("resources", "r", "", "Comma-separated list of resource ARNs or Azure resource IDs (required)")
 	generateCmd.Flags().String("schema", "", "Steampipe schema to query (auto-detected from resource IDs if omitted)")
+	generateCmd.Flags().Bool("use-modules", false, "Use registered user modules (matched by resource type)")
+	generateCmd.Flags().Bool("auto-modules", false, "Auto-select all matching user modules (implies --use-modules)")
 	_ = generateCmd.MarkFlagRequired("resources")
 	rootCmd.AddCommand(generateCmd)
 }
@@ -149,12 +162,72 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	tracker := opencode.NewMessageTracker()
 
 	// ---------------------------------------------------------------
+	// Module Matching (optional)
+	// ---------------------------------------------------------------
+	useModules, _ := cmd.Flags().GetBool("use-modules")
+	autoModules, _ := cmd.Flags().GetBool("auto-modules")
+	if autoModules {
+		useModules = true
+	}
+
+	var selectedModules []modules.FitResult
+	if useModules {
+		modStore, modErr := modules.Open(cfg.ModulesDBPath())
+		if modErr != nil {
+			fmt.Printf("Warning: could not open module store: %v\n", modErr)
+		} else {
+			defer modStore.Close()
+			allMods, listErr := modStore.ListModules()
+			if listErr == nil && len(allMods) > 0 {
+				// Extract resource types from discovered resources.
+				typeSet := make(map[string]bool)
+				for _, r := range resources {
+					typeSet[r.Type] = true
+				}
+				var targetTypes []string
+				for t := range typeSet {
+					targetTypes = append(targetTypes, t)
+				}
+
+				matched := modules.MatchModules(allMods, targetTypes)
+				if autoModules {
+					// Auto-select all with positive score.
+					selectedModules = matched
+				} else {
+					// Select only those with score >= 60%.
+					for _, fit := range matched {
+						if fit.Selected {
+							selectedModules = append(selectedModules, fit)
+						}
+					}
+				}
+
+				if len(selectedModules) > 0 {
+					fmt.Printf("\nMatched %d user module(s):\n", len(selectedModules))
+					for _, fit := range selectedModules {
+						fmt.Printf("  - %s (%d%% fit) — covers: %s\n",
+							fit.Module.Name, fit.ScorePercent(), strings.Join(fit.MatchedTypes, ", "))
+					}
+				}
+			}
+		}
+	}
+
+	// ---------------------------------------------------------------
 	// Stage 1: Blueprint Generation
 	// ---------------------------------------------------------------
 	fmt.Println("\n--- Stage 1: Generating Blueprint ---")
 
-	// Inject Stage 1 system prompt.
-	if err := ocServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt(cloud)); err != nil {
+	// Inject Stage 1 system prompt with optional user module constraints.
+	systemPrompt := llm.BuildStage1SystemPrompt(cloud)
+	if len(selectedModules) > 0 {
+		moduleSection := modules.BuildModuleCatalogPrompt(selectedModules)
+		if moduleSection != "" {
+			systemPrompt = systemPrompt + "\n\n" + moduleSection
+			debuglog.Log("[generate] injected %d user module constraint(s)", len(selectedModules))
+		}
+	}
+	if err := ocServer.InjectSystemPrompt(sessionID, systemPrompt); err != nil {
 		return fmt.Errorf("stage 1 (blueprint) failed: inject system prompt: %w", err)
 	}
 
@@ -361,14 +434,16 @@ func printAndLogPart(tp opencode.TrackedPart) {
 		}
 		debuglog.Log("[agent:tool] %s (%s)", part.ToolName, state)
 		fmt.Printf("   [tool] %s (%s)\n", part.ToolName, state)
+		// Print tool input so the exact command is visible.
+		if input := string(part.Input); input != "" && input != "null" && input != "{}" {
+			debuglog.Log("[agent:tool-input] %s", input)
+			fmt.Printf("   [input] %s\n", input)
+		}
 
 	case part.IsToolResult():
 		output := part.OutputString()
 		debuglog.Log("[agent:tool-result] %s", output)
-		// Print tool results — truncate very long output for terminal readability.
-		if len(output) > 500 {
-			output = output[:500] + "...(truncated)"
-		}
+		// Print full tool results — no truncation.
 		if output != "" {
 			for _, line := range strings.Split(output, "\n") {
 				fmt.Printf("   [result] %s\n", line)

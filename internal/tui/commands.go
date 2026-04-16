@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
+	"github.com/arunim2405/terraclaw/internal/modules"
 	"github.com/arunim2405/terraclaw/internal/opencode"
 	"github.com/arunim2405/terraclaw/internal/provider"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
@@ -30,6 +32,9 @@ var opencodeServer *opencode.Server
 // cacheStore is the shared cache store for persisting scan results.
 var cacheStore *cache.Store
 
+// moduleStore is the shared module store for user-registered Terraform modules.
+var moduleStore *modules.Store
+
 // SetConfig stores the application config for use by TUI commands.
 func SetConfig(cfg *config.Config) { appConfig = cfg }
 
@@ -41,6 +46,9 @@ func SetOpencodeServer(s *opencode.Server) { opencodeServer = s }
 
 // SetCacheStore stores the cache store for use by TUI commands.
 func SetCacheStore(s *cache.Store) { cacheStore = s }
+
+// SetModuleStore stores the module store for use by TUI commands.
+func SetModuleStore(s *modules.Store) { moduleStore = s }
 
 // ---------------------------------------------------------------------------
 // Messages
@@ -72,7 +80,8 @@ type generatingStartedMsg struct {
 
 // agentStatusMsg carries a status update from polling OpenCode messages.
 type agentStatusMsg struct {
-	status string
+	status     string
+	logEntries []string // new activity log lines to append
 }
 
 // generationDoneMsg is sent when the async prompt completes and files are scanned.
@@ -182,7 +191,14 @@ func tickCmd() tea.Cmd {
 	})
 }
 
-// scanResourcesCmd scans cloud resources and builds the dependency graph.
+// scanStartedMsg is sent when the async scan goroutine has started.
+type scanStartedMsg struct {
+	progressCh <-chan string
+	doneCh     <-chan graphBuiltMsg
+}
+
+// scanResourcesCmd starts the resource scan asynchronously and returns immediately.
+// Progress updates are sent via a channel and polled by pollScanProgressCmd.
 func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 	return func() tea.Msg {
 		if steampipeClient == nil {
@@ -200,7 +216,6 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 				return graphBuiltMsg{err: fmt.Errorf("list tables: %w", err)}
 			}
 		default: // "key"
-			// Use configured tables if set, else provider-appropriate defaults.
 			if appConfig != nil && appConfig.ScanTables != "" && appConfig.ScanTables != "*" {
 				tables = splitAndTrim(appConfig.ScanTables, ",")
 			} else {
@@ -210,34 +225,89 @@ func scanResourcesCmd(schema string, scanMode string) tea.Cmd {
 			debuglog.Log("[graph] scanning %d key tables for schema=%s", len(tables), schema)
 		}
 
-		g := graph.New()
-		err := g.Build(steampipeClient, schema, tables, func(scanned, total int, table string) {
-			debuglog.Log("[graph] progress: %d/%d — %s", scanned, total, table)
-		})
-		if err != nil {
-			return graphBuiltMsg{err: err}
+		progressCh := make(chan string, len(tables)+5)
+		doneCh := make(chan graphBuiltMsg, 1)
+
+		progressCh <- fmt.Sprintf("Scanning %d resource tables in %q...", len(tables), schema)
+
+		go func() {
+			defer close(progressCh)
+			defer close(doneCh)
+
+			g := graph.New()
+			err := g.Build(steampipeClient, schema, tables, func(scanned, total int, table string) {
+				msg := fmt.Sprintf("[%d/%d] Scanning %s...", scanned+1, total, table)
+				debuglog.Log("[graph] progress: %s", msg)
+				select {
+				case progressCh <- msg:
+				default:
+				}
+			})
+			if err != nil {
+				doneCh <- graphBuiltMsg{err: err}
+				return
+			}
+
+			progressCh <- fmt.Sprintf("Scanned %d tables, found %d resources. Detecting relationships...",
+				g.Stats.TablesScanned, g.Stats.ResourceCount)
+
+			g.DetectRelationships()
+			debuglog.Log("[graph] build complete: %d nodes, %d edges", g.Stats.ResourceCount, g.Stats.EdgeCount)
+
+			progressCh <- fmt.Sprintf("Found %d resources with %d relationships. Saving...",
+				g.Stats.ResourceCount, g.Stats.EdgeCount)
+
+			if cacheStore != nil && !appConfig.NoCache {
+				if err := cacheStore.SaveGraph(schema, scanMode, tables, g); err != nil {
+					debuglog.Log("[cache] warning: failed to save scan to cache: %v", err)
+				} else {
+					debuglog.Log("[cache] scan saved to cache for schema=%s mode=%s", schema, scanMode)
+				}
+			}
+
+			doneCh <- graphBuiltMsg{graph: g}
+		}()
+
+		return scanStartedMsg{progressCh: progressCh, doneCh: doneCh}
+	}
+}
+
+// pollScanProgressCmd reads progress updates from the scan goroutine.
+func pollScanProgressCmd(progressCh <-chan string, doneCh <-chan graphBuiltMsg) tea.Cmd {
+	return func() tea.Msg {
+		// Check if scan is done (non-blocking).
+		select {
+		case result := <-doneCh:
+			return result
+		default:
 		}
 
-		// Detect relationships between resources.
-		g.DetectRelationships()
-		debuglog.Log("[graph] build complete: %d nodes, %d edges", g.Stats.ResourceCount, g.Stats.EdgeCount)
-
-		// Save to cache.
-		if cacheStore != nil && !appConfig.NoCache {
-			if err := cacheStore.SaveGraph(schema, scanMode, tables, g); err != nil {
-				debuglog.Log("[cache] warning: failed to save scan to cache: %v", err)
-			} else {
-				debuglog.Log("[cache] scan saved to cache for schema=%s mode=%s", schema, scanMode)
+		// Not done — drain to the latest progress message.
+		var latest string
+		for {
+			select {
+			case msg, ok := <-progressCh:
+				if !ok {
+					// Channel closed — scan goroutine finished, wait for result.
+					time.Sleep(100 * time.Millisecond)
+					return <-doneCh
+				}
+				latest = msg
+			default:
+				// No more queued messages.
+				if latest != "" {
+					return scanProgressMsg{message: latest}
+				}
+				time.Sleep(200 * time.Millisecond)
+				return scanProgressMsg{message: ""}
 			}
 		}
-
-		return graphBuiltMsg{graph: g}
 	}
 }
 
 // generateCodeCmd sets up the OpenCode session and sends the prompt asynchronously.
 // It returns a generatingStartedMsg so the TUI can begin polling for progress.
-func generateCodeCmd(resources []ResourceItem, schema string) tea.Cmd {
+func generateCodeCmd(resources []ResourceItem, schema string, selectedModules ...[]modules.FitResult) tea.Cmd {
 	return func() tea.Msg {
 		debuglog.Log("[opencode] generateCode called: resources=%d", len(resources))
 		if opencodeServer == nil {
@@ -268,8 +338,16 @@ func generateCodeCmd(resources []ResourceItem, schema string) tea.Cmd {
 		// Detect cloud provider from schema.
 		cloud := provider.DetectFromSchema(schema)
 
-		// 2. Inject the Stage 1 system prompt.
-		if err := opencodeServer.InjectSystemPrompt(sessionID, llm.BuildStage1SystemPrompt(cloud)); err != nil {
+		// 2. Inject the Stage 1 system prompt with optional user module constraints.
+		systemPrompt := llm.BuildStage1SystemPrompt(cloud)
+		if len(selectedModules) > 0 && len(selectedModules[0]) > 0 {
+			moduleSection := modules.BuildModuleCatalogPrompt(selectedModules[0])
+			if moduleSection != "" {
+				systemPrompt = systemPrompt + "\n\n" + moduleSection
+				debuglog.Log("[opencode] injected %d user module constraint(s) into system prompt", len(selectedModules[0]))
+			}
+		}
+		if err := opencodeServer.InjectSystemPrompt(sessionID, systemPrompt); err != nil {
 			return generationDoneMsg{err: fmt.Errorf("inject system prompt: %w", err)}
 		}
 
@@ -308,8 +386,9 @@ func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult,
 			return agentStatusMsg{status: "Generating..."}
 		}
 
-		// Log new parts via the tracker.
+		// Log new parts via the tracker and collect activity log entries.
 		status := "Agent is thinking..."
+		var logEntries []string
 		if tracker != nil {
 			newParts := tracker.NewParts(messages)
 			for _, tp := range newParts {
@@ -317,6 +396,7 @@ func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult,
 					continue
 				}
 				logMessagePart(tp.Part)
+				logEntries = append(logEntries, formatPartForActivityLog(tp.Part)...)
 			}
 			status = extractLatestStatus(messages)
 		} else {
@@ -324,7 +404,7 @@ func pollAgentStatusCmd(sessionID string, resultCh <-chan opencode.PromptResult,
 		}
 
 		time.Sleep(2 * time.Second)
-		return agentStatusMsg{status: status}
+		return agentStatusMsg{status: status, logEntries: logEntries}
 	}
 }
 
@@ -427,17 +507,117 @@ func logMessagePart(part opencode.MessagePart) {
 			state = "running"
 		}
 		debuglog.Log("[agent:tool] %s (%s)", part.ToolName, state)
+		// Log tool input so the exact command is visible in the debug log.
+		if input := string(part.Input); input != "" && input != "null" && input != "{}" {
+			debuglog.Log("[agent:tool-input] %s", input)
+		}
 	case part.IsToolResult():
 		output := part.OutputString()
-		if len(output) > 500 {
-			output = output[:500] + "..."
-		}
+		// Full output — no truncation.
 		debuglog.Log("[agent:tool-result] %s", output)
 	default:
 		if part.Text != "" {
 			debuglog.Log("[agent:%s] %s", part.Type, part.Text)
 		}
 	}
+}
+
+// formatPartForActivityLog converts a MessagePart into one or more human-readable
+// lines for the TUI activity log. Every tool invocation and its full output is
+// included so that the user can see exactly what commands OpenCode runs.
+func formatPartForActivityLog(part opencode.MessagePart) []string {
+	switch {
+	case part.IsThinking():
+		text := strings.TrimSpace(part.Text)
+		if text == "" {
+			return nil
+		}
+		// Show a condensed thinking indicator.
+		if len(text) > 200 {
+			text = text[len(text)-200:]
+		}
+		return []string{"[thinking] " + singleLine(text)}
+
+	case part.IsText():
+		text := strings.TrimSpace(part.Text)
+		if text == "" {
+			return nil
+		}
+		var lines []string
+		for _, line := range strings.Split(text, "\n") {
+			line = strings.TrimSpace(line)
+			if line != "" {
+				lines = append(lines, line)
+			}
+		}
+		return lines
+
+	case part.IsToolUse():
+		state := part.StateString()
+		if state == "" {
+			state = "running"
+		}
+		entry := fmt.Sprintf("[tool] %s (%s)", part.ToolName, state)
+		// Include tool input if it looks like a shell command.
+		input := string(part.Input)
+		if input != "" && input != "null" && input != "{}" {
+			// Try to extract the command from common input shapes.
+			if cmd := extractCommandFromInput(input); cmd != "" {
+				entry += "\n       $ " + cmd
+			}
+		}
+		return []string{entry}
+
+	case part.IsToolResult():
+		output := part.OutputString()
+		if output == "" {
+			return nil
+		}
+		var lines []string
+		lines = append(lines, "[result]")
+		for _, line := range strings.Split(output, "\n") {
+			lines = append(lines, "  "+line)
+		}
+		return lines
+
+	default:
+		if part.Text != "" {
+			return []string{fmt.Sprintf("[%s] %s", part.Type, strings.TrimSpace(part.Text))}
+		}
+		return nil
+	}
+}
+
+// extractCommandFromInput tries to pull a shell command string from tool input JSON.
+// Common shapes: {"command":"..."} or {"content":"..."} or plain string.
+func extractCommandFromInput(raw string) string {
+	raw = strings.TrimSpace(raw)
+	// Try JSON object with "command" key.
+	type cmdInput struct {
+		Command string `json:"command"`
+		Content string `json:"content"`
+	}
+	var ci cmdInput
+	if err := json.Unmarshal([]byte(raw), &ci); err == nil {
+		if ci.Command != "" {
+			return ci.Command
+		}
+		if ci.Content != "" {
+			return ci.Content
+		}
+	}
+	return ""
+}
+
+// singleLine collapses a multiline string into a single line.
+func singleLine(s string) string {
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", " ")
+	// Collapse multiple spaces.
+	for strings.Contains(s, "  ") {
+		s = strings.ReplaceAll(s, "  ", " ")
+	}
+	return strings.TrimSpace(s)
 }
 
 // extractLatestStatus returns the most relevant status line from the latest

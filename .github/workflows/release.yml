@@ -1,0 +1,140 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}/${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Linux
+          - goos: linux
+            goarch: amd64
+            os: linux
+            arch: amd64
+          - goos: linux
+            goarch: arm64
+            os: linux
+            arch: arm64
+          # macOS
+          - goos: darwin
+            goarch: amd64
+            os: darwin
+            arch: amd64
+          - goos: darwin
+            goarch: arm64
+            os: darwin
+            arch: arm64
+          # Windows
+          - goos: windows
+            goarch: amd64
+            os: windows
+            arch: amd64
+            ext: .exe
+          - goos: windows
+            goarch: arm64
+            os: windows
+            arch: arm64
+            ext: .exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build binary
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          COMMIT="${GITHUB_SHA::8}"
+          BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          LDFLAGS="-s -w -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.buildTime=${BUILD_TIME}"
+          BINARY="terraclaw-${VERSION}-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}"
+          go build -ldflags "${LDFLAGS}" -o "${BINARY}" .
+          echo "BINARY=${BINARY}" >> "$GITHUB_ENV"
+
+      - name: Compress (tar.gz for unix, zip for windows)
+        run: |
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            ARCHIVE="${BINARY%.exe}.zip"
+            zip "${ARCHIVE}" "${BINARY}"
+          else
+            ARCHIVE="${BINARY}.tar.gz"
+            tar czf "${ARCHIVE}" "${BINARY}"
+          fi
+          sha256sum "${ARCHIVE}" > "${ARCHIVE}.sha256"
+          echo "ARCHIVE=${ARCHIVE}" >> "$GITHUB_ENV"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVE }}
+          path: |
+            ${{ env.ARCHIVE }}
+            ${{ env.ARCHIVE }}.sha256
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag.
+          PREV_TAG=$(git tag --sort=-v:refname | grep '^v' | head -2 | tail -1)
+          if [ -z "${PREV_TAG}" ] || [ "${PREV_TAG}" = "${GITHUB_REF_NAME}" ]; then
+            echo "body=Initial release" >> "$GITHUB_OUTPUT"
+          else
+            CHANGES=$(git log --oneline "${PREV_TAG}..${GITHUB_REF_NAME}" --no-merges)
+            # Escape for multiline output.
+            EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+            echo "body<<${EOF}" >> "$GITHUB_OUTPUT"
+            echo "## Changes since ${PREV_TAG}" >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+            echo "${CHANGES}" | while read -r line; do echo "- ${line}"; done >> "$GITHUB_OUTPUT"
+            echo "" >> "$GITHUB_OUTPUT"
+            echo "## Checksums" >> "$GITHUB_OUTPUT"
+            echo '```' >> "$GITHUB_OUTPUT"
+            cat artifacts/*.sha256 >> "$GITHUB_OUTPUT"
+            echo '```' >> "$GITHUB_OUTPUT"
+            echo "${EOF}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.body }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          files: |
+            artifacts/*.tar.gz
+            artifacts/*.zip
+            artifacts/*.sha256

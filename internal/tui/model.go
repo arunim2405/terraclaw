@@ -13,6 +13,7 @@ import (
 	"github.com/arunim2405/terraclaw/internal/debuglog"
 	"github.com/arunim2405/terraclaw/internal/graph"
 	"github.com/arunim2405/terraclaw/internal/llm"
+	"github.com/arunim2405/terraclaw/internal/modules"
 	"github.com/arunim2405/terraclaw/internal/opencode"
 	"github.com/arunim2405/terraclaw/internal/provider"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
@@ -30,6 +31,7 @@ const (
 	StepBrowseResourceTypes             // Browse discovered resource types
 	StepSelectResources                 // Select individual resources (with related expansion)
 	StepConfirmGenerate                 // Confirm before calling LLM
+	StepModuleSelection                 // Select matching user modules to apply
 	StepGenerating                      // Waiting for LLM response
 	StepViewCode                        // Review generated Terraform code
 	StepConfirmImport                   // Confirm running terraform import
@@ -112,13 +114,21 @@ type Model struct {
 	codeScrollOffset int
 
 	// Scan progress.
-	scanProgress string
+	scanProgress   string
+	scanProgressCh <-chan string
+	scanDoneCh     <-chan graphBuiltMsg
 
 	// Agent status during code generation.
 	agentStatus     string
+	activityLog     []string // rolling log of agent activity shown in TUI
+	opencodeURL     string   // URL to the OpenCode web UI for the active session
 	activeSessionID string
 	activeResultCh  <-chan opencode.PromptResult
 	messageTracker  *opencode.MessageTracker
+
+	// User module matching and selection.
+	matchedModules  []modules.FitResult // modules that matched selected resources
+	selectedModules []modules.FitResult // user-confirmed modules to inject into prompts
 
 	// Pipeline stage tracking (1 = blueprint, 2 = terraform, 3 = import).
 	generationStage int
@@ -224,8 +234,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case asyncResultMsg:
 		return m.handleAsyncResult(asyncResult(msg))
 
+	case scanStartedMsg:
+		m.scanProgressCh = msg.progressCh
+		m.scanDoneCh = msg.doneCh
+		m.scanProgress = "Starting scan..."
+		return m, pollScanProgressCmd(msg.progressCh, msg.doneCh)
+
 	case scanProgressMsg:
-		m.scanProgress = msg.message
+		if msg.message != "" {
+			m.scanProgress = msg.message
+		}
+		// Continue polling if channels are still active.
+		if m.scanProgressCh != nil && m.scanDoneCh != nil {
+			return m, pollScanProgressCmd(m.scanProgressCh, m.scanDoneCh)
+		}
 		return m, nil
 
 	case cacheCheckMsg:
@@ -250,12 +272,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.agentStatus = "Agent is starting..."
 		m.generationStage = 1
 		m.messageTracker = opencode.NewMessageTracker()
+		// Build the OpenCode web UI URL for this session.
+		if opencodeServer != nil {
+			m.opencodeURL = fmt.Sprintf("%s/session/%s", opencodeServer.BaseURL(), msg.sessionID)
+		}
 		debuglog.Log("[tui] generation started, polling session %s", msg.sessionID)
 		return m, tea.Batch(tickCmd(), pollAgentStatusCmd(msg.sessionID, msg.resultCh, m.messageTracker))
 
 	case agentStatusMsg:
-		// Update agent status display and continue polling.
+		// Update agent status display and append activity log entries.
 		m.agentStatus = msg.status
+		if len(msg.logEntries) > 0 {
+			m.activityLog = append(m.activityLog, msg.logEntries...)
+			// Cap the log to last 200 lines to bound memory.
+			if len(m.activityLog) > 200 {
+				m.activityLog = m.activityLog[len(m.activityLog)-200:]
+			}
+		}
 		if m.activeSessionID != "" && m.activeResultCh != nil {
 			return m, pollAgentStatusCmd(m.activeSessionID, m.activeResultCh, m.messageTracker)
 		}
@@ -407,7 +440,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) isListStep() bool {
 	switch m.step {
 	case StepSelectSchema, StepSelectScanMode, StepCacheChoice, StepBrowseResourceTypes,
-		StepSelectResources, StepConfirmGenerate, StepConfirmImport:
+		StepSelectResources, StepConfirmGenerate, StepModuleSelection, StepConfirmImport:
 		return true
 	}
 	return false
@@ -423,9 +456,12 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleEnter()
 
 	case " ":
-		// Space toggles selection on resource step.
+		// Space toggles selection on resource step or module selection step.
 		if m.step == StepSelectResources {
 			return m.toggleResource()
+		}
+		if m.step == StepModuleSelection {
+			return m.toggleModule()
 		}
 
 	case "r":
@@ -497,6 +533,9 @@ func (m Model) goBack() (tea.Model, tea.Cmd) {
 	case StepConfirmGenerate:
 		m.step = StepBrowseResourceTypes
 		m.list = buildResourceTypeList(m.resourceTypes, m.resourceGraph, m.width, m.height)
+	case StepModuleSelection:
+		m.step = StepConfirmGenerate
+		m.list = buildConfirmList(fmt.Sprintf("Generate Terraform code for %d selected resource(s)?", len(m.selectedResources)), m.width, m.height)
 	case StepViewCode:
 		m.step = StepConfirmGenerate
 		m.list = buildConfirmList("Generate Terraform code for selected resources?", m.width, m.height)
@@ -570,9 +609,36 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		m.cliCommand = buildCLICommand(m.selectedResources, m.selectedSchema)
 		m.list = buildConfirmList(fmt.Sprintf("Generate Terraform code for %d selected resource(s)?", len(m.selectedResources)), m.width, m.height)
 
+	case StepModuleSelection:
+		// User confirmed module selection — collect selected modules and proceed.
+		m.selectedModules = nil
+		for _, fit := range m.matchedModules {
+			if fit.Selected {
+				m.selectedModules = append(m.selectedModules, fit)
+			}
+		}
+		debuglog.Log("[tui] step: ModuleSelection → Generating (%d module(s) selected)", len(m.selectedModules))
+		m.step = StepGenerating
+		return m, tea.Batch(tickCmd(), generateCodeCmd(m.selectedResources, m.selectedSchema, m.selectedModules))
+
 	case StepConfirmGenerate:
 		if item, ok := m.list.SelectedItem().(listItem); ok {
 			if item.title == "Yes" {
+				// Check for matching user modules before proceeding.
+				if moduleStore != nil {
+					targetTypes := extractResourceTypesFromItems(m.selectedResources)
+					allMods, err := moduleStore.ListModules()
+					if err == nil && len(allMods) > 0 {
+						matched := modules.MatchModules(allMods, targetTypes)
+						if len(matched) > 0 {
+							m.matchedModules = matched
+							m.step = StepModuleSelection
+							m.list = buildModuleSelectionList(matched, m.width, m.height)
+							debuglog.Log("[tui] step: ConfirmGenerate → ModuleSelection (%d match(es))", len(matched))
+							return m, nil
+						}
+					}
+				}
 				debuglog.Log("[tui] step: ConfirmGenerate → Generating")
 				m.step = StepGenerating
 				return m, tea.Batch(tickCmd(), generateCodeCmd(m.selectedResources, m.selectedSchema))
@@ -638,6 +704,63 @@ func (m Model) toggleResource() (tea.Model, tea.Cmd) {
 		m.list.SetItems(items)
 	}
 	return m, nil
+}
+
+// toggleModule toggles the Selected state of a module in the module selection step.
+func (m Model) toggleModule() (tea.Model, tea.Cmd) {
+	idx := m.list.Index()
+	if idx >= 0 && idx < len(m.matchedModules) {
+		m.matchedModules[idx].Selected = !m.matchedModules[idx].Selected
+
+		// Rebuild list items to reflect selection state.
+		items := make([]list.Item, len(m.matchedModules))
+		for i, fit := range m.matchedModules {
+			prefix := "  "
+			if fit.Selected {
+				prefix = "✓ "
+			}
+			items[i] = listItem{
+				title: fmt.Sprintf("%s%s (%d%% fit)", prefix, fit.Module.Name, fit.ScorePercent()),
+				desc: fmt.Sprintf("Covers: %s | Source: %s",
+					strings.Join(fit.MatchedTypes, ", "), fit.Module.Source),
+			}
+		}
+		m.list.SetItems(items)
+	}
+	return m, nil
+}
+
+// buildModuleSelectionList creates a list of matched modules with fit scores.
+func buildModuleSelectionList(matches []modules.FitResult, w, h int) list.Model {
+	items := make([]list.Item, len(matches))
+	for i, fit := range matches {
+		prefix := "  "
+		if fit.Selected {
+			prefix = "✓ "
+		}
+		items[i] = listItem{
+			title: fmt.Sprintf("%s%s (%d%% fit)", prefix, fit.Module.Name, fit.ScorePercent()),
+			desc: fmt.Sprintf("Covers: %s | Source: %s",
+				strings.Join(fit.MatchedTypes, ", "), fit.Module.Source),
+		}
+	}
+	return newList(items, "Select User Modules to Apply", w, h, 0)
+}
+
+// extractResourceTypesFromItems returns the deduplicated resource type strings
+// from a set of selected ResourceItems.
+func extractResourceTypesFromItems(items []ResourceItem) []string {
+	seen := make(map[string]bool)
+	var types []string
+	for _, ri := range items {
+		if r, ok := ri.Resource.(steampipe.Resource); ok {
+			if !seen[r.Type] {
+				seen[r.Type] = true
+				types = append(types, r.Type)
+			}
+		}
+	}
+	return types
 }
 
 // expandRelated finds all resources related to the currently highlighted
@@ -729,6 +852,10 @@ func (m Model) handleCacheCheck(msg cacheCheckMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleGraphBuilt(msg graphBuiltMsg) (tea.Model, tea.Cmd) {
+	// Clean up scan channels.
+	m.scanProgressCh = nil
+	m.scanDoneCh = nil
+
 	if msg.err != nil {
 		m.err = msg.err
 		debuglog.Log("[tui] graph build error: %v", msg.err)
@@ -768,7 +895,7 @@ func (m Model) handleAsyncResult(res asyncResult) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	switch m.step {
 	case StepSelectSchema, StepSelectScanMode, StepCacheChoice, StepBrowseResourceTypes,
-		StepSelectResources, StepConfirmGenerate, StepConfirmImport:
+		StepSelectResources, StepConfirmGenerate, StepModuleSelection, StepConfirmImport:
 		return m.listView()
 
 	case StepCheckingCache:
@@ -803,6 +930,8 @@ func (m Model) listView() string {
 	switch m.step {
 	case StepSelectResources:
 		sb.WriteString(infoStyle.Render("  [space] toggle • [r] expand related • [enter] confirm • [esc] back • [q] quit"))
+	case StepModuleSelection:
+		sb.WriteString(infoStyle.Render("  [space] toggle module • [enter] confirm selection • [esc] back • [q] quit"))
 	case StepConfirmGenerate:
 		sb.WriteString(infoStyle.Render("  [enter] select • [esc] back • [q] quit"))
 		if m.cliCommand != "" {
@@ -821,17 +950,78 @@ func (m Model) listView() string {
 }
 
 func (m Model) scanView() string {
+	var sb strings.Builder
 	spinner := spinnerChars[m.spinnerFrame%len(spinnerChars)]
-	return fmt.Sprintf("\n\n  %s %s\n\n  %s\n",
-		spinner,
-		infoStyle.Render("Scanning cloud resources..."),
-		infoStyle.Render(m.scanProgress),
-	)
+
+	sb.WriteString("\n")
+	sb.WriteString(titleStyle.Render(" Scanning Cloud Resources "))
+	sb.WriteString("\n\n")
+	sb.WriteString(fmt.Sprintf("  %s %s\n", spinner, infoStyle.Render("Discovering resources via Steampipe...")))
+	sb.WriteString("\n")
+
+	if m.scanProgress != "" {
+		sb.WriteString(fmt.Sprintf("  %s\n", subtleStyle.Render(m.scanProgress)))
+	}
+
+	sb.WriteString("\n")
+	sb.WriteString(subtleStyle.Render("  Press q to quit"))
+	sb.WriteString("\n")
+	return sb.String()
 }
 
 func (m Model) loadingView(msg string) string {
 	spinner := spinnerChars[m.spinnerFrame%len(spinnerChars)]
 	return fmt.Sprintf("\n\n  %s %s\n", spinner, infoStyle.Render(msg))
+}
+
+// renderActivityLog renders the last N lines of agent activity that fit in
+// the available terminal height, so the user can see exactly what commands
+// and scripts OpenCode is running and their output.
+func (m Model) renderActivityLog() string {
+	if len(m.activityLog) == 0 {
+		return ""
+	}
+
+	// Reserve lines for header (4), status (2), footer (3), and padding.
+	maxLines := m.height - 12
+	if maxLines < 5 {
+		maxLines = 5
+	}
+
+	maxWidth := m.width - 6
+	if maxWidth < 40 {
+		maxWidth = 80
+	}
+
+	// Collect lines, wrapping long ones to terminal width.
+	var wrapped []string
+	for _, entry := range m.activityLog {
+		for _, line := range strings.Split(entry, "\n") {
+			// Truncate very long lines to terminal width.
+			if len(line) > maxWidth {
+				line = line[:maxWidth-3] + "..."
+			}
+			wrapped = append(wrapped, line)
+		}
+	}
+
+	// Take only the tail that fits.
+	start := 0
+	if len(wrapped) > maxLines {
+		start = len(wrapped) - maxLines
+	}
+	visible := wrapped[start:]
+
+	var sb strings.Builder
+	sb.WriteString(subtleStyle.Render("  ── Agent Activity ──"))
+	sb.WriteString("\n")
+	for _, line := range visible {
+		sb.WriteString("  ")
+		sb.WriteString(subtleStyle.Render(line))
+		sb.WriteString("\n")
+	}
+	sb.WriteString("\n")
+	return sb.String()
 }
 
 func (m Model) generatingView() string {
@@ -853,8 +1043,10 @@ func (m Model) generatingView() string {
 	}())))
 	sb.WriteString("\n")
 
+	// Render scrolling activity log.
+	sb.WriteString(m.renderActivityLog())
+
 	if m.agentStatus != "" {
-		// Word wrap the status to fit the terminal width.
 		maxWidth := m.width - 6
 		if maxWidth < 40 {
 			maxWidth = 80
@@ -873,6 +1065,10 @@ func (m Model) generatingView() string {
 	}
 
 	sb.WriteString("\n")
+	if m.opencodeURL != "" {
+		sb.WriteString(subtleStyle.Render("  OpenCode session: " + m.opencodeURL))
+		sb.WriteString("\n")
+	}
 	sb.WriteString(subtleStyle.Render("  Press q to quit"))
 	sb.WriteString("\n")
 	return sb.String()
@@ -890,6 +1086,9 @@ func (m Model) importingView() string {
 			m.refinementIteration, llm.MaxRefinementIterations))))
 	sb.WriteString("\n")
 
+	// Render scrolling activity log.
+	sb.WriteString(m.renderActivityLog())
+
 	if m.agentStatus != "" {
 		maxWidth := m.width - 6
 		if maxWidth < 40 {
@@ -903,6 +1102,10 @@ func (m Model) importingView() string {
 	}
 
 	sb.WriteString("\n")
+	if m.opencodeURL != "" {
+		sb.WriteString(subtleStyle.Render("  OpenCode session: " + m.opencodeURL))
+		sb.WriteString("\n")
+	}
 	sb.WriteString(subtleStyle.Render("  Press q to quit"))
 	sb.WriteString("\n")
 	return sb.String()

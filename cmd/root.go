@@ -15,6 +15,7 @@ import (
 	"github.com/arunim2405/terraclaw/config"
 	"github.com/arunim2405/terraclaw/internal/cache"
 	"github.com/arunim2405/terraclaw/internal/debuglog"
+	"github.com/arunim2405/terraclaw/internal/modules"
 	"github.com/arunim2405/terraclaw/internal/opencode"
 	"github.com/arunim2405/terraclaw/internal/steampipe"
 	"github.com/arunim2405/terraclaw/internal/tui"
@@ -24,10 +25,17 @@ var rootCmd = &cobra.Command{
 	Use:   "terraclaw",
 	Short: "Convert existing cloud resources to Terraform configuration using AI",
 	Long: `terraclaw is an interactive CLI tool that:
-  • Connects to Steampipe to discover existing cloud resources
+  • Connects to Steampipe to discover existing cloud resources (AWS, Azure)
   • Builds a dependency graph of related resources
+  • Matches your registered Terraform modules by fit score
   • Uses OpenCode (AI coding agent) to generate Terraform HCL
-  • Runs terraform import to create state files for the resources`,
+  • Runs terraform import to create state files for the resources
+
+Module commands:
+  add-module       Register a Terraform module from a git repo or local path
+  list-modules     List all registered user modules
+  inspect-module   Show full metadata for a registered module
+  remove-module    Remove a registered module by name`,
 	RunE: runInteractive,
 }
 
@@ -134,11 +142,21 @@ func runInteractive(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("no Steampipe plugin schemas found; install a plugin first:\n  steampipe plugin install aws")
 	}
 
-	// Wire up the TUI with the config, steampipe client, opencode server, and cache.
+	// Open the module store for user-registered Terraform modules.
+	modStore, modErr := modules.Open(cfg.ModulesDBPath())
+	if modErr != nil {
+		debuglog.Log("[startup] warning: could not open module store: %v", modErr)
+	} else {
+		defer modStore.Close()
+		debuglog.Log("[startup] module store opened at %s", cfg.ModulesDBPath())
+	}
+
+	// Wire up the TUI with the config, steampipe client, opencode server, cache, and modules.
 	tui.SetConfig(cfg)
 	tui.SetSteampipeClient(spClient)
 	tui.SetOpencodeServer(ocServer)
 	tui.SetCacheStore(cacheStore)
+	tui.SetModuleStore(modStore)
 
 	model := tui.New(schemas)
 	p := tea.NewProgram(model, tea.WithAltScreen())
