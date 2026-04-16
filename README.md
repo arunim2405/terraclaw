@@ -371,3 +371,15 @@ terraclaw/
 | `Esc`         | Go back to previous step                    |
 | `/`           | Filter list                                 |
 | `q` / `Ctrl+C`| Quit                                       |
+
+---
+
+## Codify at Scale
+
+<a href="https://www.stackguardian.io/platform/code">
+  <img src="https://cdn.prod.website-files.com/624e5850e5f4590e498e0ce2/67bcb8cf3697a7ff4be3e14d_SG%20logo%20Dark-p-500.png" alt="StackGuardian" width="200" />
+</a>
+
+If you're looking to codify cloud resources **at scale** with minimal setup — and manage, govern, and drift-detect the resulting Terraform across your organization — check out [StackGuardian Code](https://www.stackguardian.io/platform/code).
+
+StackGuardian provides a managed platform that goes beyond one-off imports: continuous codification, policy guardrails, module governance, and team collaboration out of the box.
