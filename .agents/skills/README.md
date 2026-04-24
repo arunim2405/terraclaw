@@ -35,6 +35,23 @@ Skills for developing Terraform providers.
 | provider-actions       | Implement provider actions (lifecycle operations) |
 | provider-resources     | Implement resources and data sources |
 
+### terrashark
+
+Failure-mode-first guardrails that prevent the highest-impact Terraform / OpenTofu hallucinations (identity churn, secret exposure, blast-radius mistakes, CI drift, compliance gaps). Upstream: [LukasNiessen/terrashark](https://github.com/LukasNiessen/terrashark) — MIT licensed, bundled verbatim at `.agents/skills/terrashark/`.
+
+| Reference | Why it matters for terraclaw |
+|-----------|------------------------------|
+| `SKILL.md`              | 7-step workflow: diagnose before generating |
+| `coding-standards.md`   | Iteration/identity, version discipline, feature-guard table |
+| `do-dont-patterns.md`   | Fast checklist for safe HCL output |
+| `identity-churn.md`     | `count` vs `for_each`, `moved` blocks, stable keys |
+| `secret-exposure.md`    | Preventing secret leakage through state/logs/artifacts |
+| `module-architecture.md`| Module role model and composition rules |
+| `migration-playbooks.md`| `moved`/`import`/refactor playbooks |
+| `examples-good.md` / `examples-bad.md` | Pattern banks |
+
+**How terraclaw uses it:** The references are also embedded into the binary via `internal/terrashark` and injected into both Stage 1 (blueprint design) and Stage 2 (HCL emission) prompts as a `<terrashark_guardrails>` block. This is independent of OpenCode-side skill loading — both paths are active, giving belt + suspenders coverage.
+
 ## Installation
 
 ### Claude Code Plugin
