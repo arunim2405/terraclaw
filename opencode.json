@@ -31,7 +31,8 @@
     "list": "allow"
   },
   "instructions": [
-    ".agents/skills/code-generation/skills/terraform-style-guide/SKILL.md"
+    ".agents/skills/code-generation/skills/terraform-style-guide/SKILL.md",
+    ".agents/skills/terrashark/SKILL.md"
   ],
   "plugin": [
     ".agents/skills/code-generation/.claude-plugin/plugin.json"

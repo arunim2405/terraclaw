@@ -18,6 +18,15 @@ Go-based interactive CLI for converting existing cloud resources to Terraform/Op
 4. **Generates Terraform HCL** using [OpenCode](https://opencode.ai/) (AI coding agent), preferring your modules over public registry modules
 5. **Runs `terraform import`** to create state files for the selected resources
 
+### Hallucination-resistant code generation
+
+Every generation call is guarded by the [TerraShark](https://github.com/LukasNiessen/terrashark) failure-mode prompt suite. The references (workflow, coding standards, do/don't patterns, identity-churn rules, secret-exposure rules, migration playbooks, good/bad example banks, module architecture) are:
+
+- **Embedded into the binary** via `internal/terrashark` and injected as a `<terrashark_guardrails>` block into both Stage 1 (blueprint design) and Stage 2 (HCL emission) prompts.
+- **Also registered as an OpenCode skill** at `.agents/skills/terrashark/`, so the agent can load full references on demand.
+
+This gives the model an explicit diagnostic frame (prefer pinned trusted modules, `for_each` with business keys, no invented attribute names, no plaintext secrets, `moved` blocks on renames) before it emits a single line of HCL — independent of the underlying model or provider.
+
 ## Prerequisites
 
 - [Go 1.25+](https://go.dev/dl/)
@@ -337,6 +346,9 @@ terraclaw/
 │   │   ├── provider.go             Two-stage Terraform generation pipeline
 │   │   ├── prompts_aws.go          AWS-specific prompt content
 │   │   └── prompts_azure.go        Azure-specific prompt content
+│   ├── terrashark/
+│   │   ├── terrashark.go           Embeds TerraShark refs; exposes DesignGuidance()/CodingGuidance()
+│   │   └── refs/                   Embedded *.md references (SKILL, coding-standards, do-dont, etc.)
 │   ├── modules/
 │   │   ├── types.go                ModuleMetadata, FitResult types
 │   │   ├── store.go                SQLite CRUD for module metadata
@@ -358,7 +370,7 @@ terraclaw/
 │   ├── debuglog/                   File-based debug logger
 │   ├── doctor/                     Dependency validation
 │   └── graph/                      Resource dependency graph
-├── .agents/skills/                 OpenCode Terraform skills (style guide, import, etc.)
+├── .agents/skills/                 OpenCode Terraform skills (style guide, import, TerraShark, etc.)
 ├── docker/
 │   └── entrypoint.sh               Docker container entrypoint
 ├── Dockerfile                       Multi-stage Docker build

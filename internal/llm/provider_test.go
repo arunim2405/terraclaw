@@ -137,6 +137,66 @@ func TestBuildStage1SystemPrompt_ContainsKeyInstructions(t *testing.T) {
 	}
 }
 
+// TestBuildStage1SystemPrompt_InjectsTerrasharkDesignGuidance verifies that
+// the TerraShark failure-mode guardrails are embedded into the Stage 1
+// (blueprint design) system prompt for every supported cloud provider.
+//
+// The TerraShark references teach the model to prefer pinned trusted
+// modules, use for_each with stable business keys, and avoid common HCL
+// hallucination patterns — this test prevents the guardrails from being
+// silently dropped during refactors.
+func TestBuildStage1SystemPrompt_InjectsTerrasharkDesignGuidance(t *testing.T) {
+	clouds := []cloudprovider.Cloud{cloudprovider.AWS, cloudprovider.Azure}
+
+	for _, c := range clouds {
+		c := c
+		t.Run(c.String(), func(t *testing.T) {
+			prompt := llm.BuildStage1SystemPrompt(c)
+
+			mustContain := []string{
+				`<terrashark_guardrails stage="Stage 1 — blueprint design">`,
+				`source="SKILL.md"`,
+				`source="module-architecture.md"`,
+				`source="do-dont-patterns.md"`,
+				`for_each with stable BUSINESS keys`,
+			}
+			for _, s := range mustContain {
+				if !strings.Contains(prompt, s) {
+					t.Errorf("Stage 1 system prompt for %s missing %q", c, s)
+				}
+			}
+		})
+	}
+}
+
+// TestBuildStage2Prompt_InjectsTerrasharkCodingGuidance verifies that the
+// TerraShark HCL emission guardrails reach Stage 2 for every supported
+// cloud provider.
+func TestBuildStage2Prompt_InjectsTerrasharkCodingGuidance(t *testing.T) {
+	clouds := []cloudprovider.Cloud{cloudprovider.AWS, cloudprovider.Azure}
+
+	for _, c := range clouds {
+		c := c
+		t.Run(c.String(), func(t *testing.T) {
+			prompt := llm.BuildStage2Prompt("meta: {}\nmodules: []", "/tmp/out", c)
+
+			mustContain := []string{
+				`<terrashark_guardrails stage="Stage 2 — HCL emission">`,
+				`source="coding-standards.md"`,
+				`source="identity-churn.md"`,
+				`source="secret-exposure.md"`,
+				`source="migration-playbooks.md"`,
+				`required_version and required_providers`,
+			}
+			for _, s := range mustContain {
+				if !strings.Contains(prompt, s) {
+					t.Errorf("Stage 2 prompt for %s missing %q", c, s)
+				}
+			}
+		})
+	}
+}
+
 // TestBuildStage2Prompt_ContainsKeyInstructions verifies the Stage 2 prompt
 // contains key instruction sections.
 func TestBuildStage2Prompt_ContainsKeyInstructions(t *testing.T) {

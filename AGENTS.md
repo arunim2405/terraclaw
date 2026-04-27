@@ -122,6 +122,14 @@ Follow standard Go idioms and the conventions already present in the codebase:
 - New LLM providers: implement the `llm.Provider` interface (`GenerateTerraform`, `Name`) and add a case to `llm.New`. Supported provider keys: `openai`, `claude`, `gemini`, `azure-openai`.
 - New CLI subcommands: add a new file in `cmd/` and register via `rootCmd.AddCommand` inside `init()`.
 
+### Prompt guardrails (TerraShark)
+- `internal/terrashark` embeds the [TerraShark](https://github.com/LukasNiessen/terrashark) failure-mode references via `//go:embed refs/*.md` and exposes two helpers:
+  - `terrashark.DesignGuidance()` — injected into `BuildStage1SystemPrompt` (blueprint design).
+  - `terrashark.CodingGuidance()` — injected into `BuildStage2Prompt` (HCL emission).
+- The embedded references are the source of truth the binary uses; the `.agents/skills/terrashark/` bundle is registered separately in `opencode.json` `instructions` so the OpenCode agent can also load references on demand. Both paths are active — do not remove one without removing the other.
+- When updating TerraShark upstream: refresh both `internal/terrashark/refs/` and `.agents/skills/terrashark/references/` together. `internal/terrashark.Verify()` (also called from tests) guards against embed drift.
+- If you add a new reference to the embed set, update `referenceNames`, include it in either `designReferenceOrder` or `codingReferenceOrder`, and extend the tests in `internal/terrashark/terrashark_test.go` and the `llm` package's `TestBuildStage{1,2}Prompt_InjectsTerrasharkGuidance` tests.
+
 ### TUI (BubbleTea)
 - The `Model` struct is the single source of truth for UI state; do not use global variables for state.
 - Async work (network calls, subprocess execution) must be performed in `tea.Cmd` functions (see `internal/tui/commands.go`), never inside `Update`.
